@@ -7,6 +7,8 @@
 #include "core/settings.h"
 #include "ui_configure_graphics.h"
 
+#include <QColorDialog>
+
 ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGraphics) {
 
@@ -26,9 +28,19 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     ui->hw_shader_group->setEnabled(ui->toggle_hw_shader->isChecked());
     connect(ui->toggle_hw_shader, &QCheckBox::stateChanged, ui->hw_shader_group,
             &QWidget::setEnabled);
+
+    connect(ui->layout_bg, SIGNAL (released()), this, SLOT (showLayoutBackgroundDialog()));
 }
 
 ConfigureGraphics::~ConfigureGraphics() {}
+
+void ConfigureGraphics::showLayoutBackgroundDialog() {
+    QColor new_color = QColorDialog::getColor(bg_color, this);
+    if (new_color.isValid()) {
+        bg_color = new_color;
+        ui->layout_bg->setStyleSheet("QPushButton { background-color: " + bg_color.name() + ";}");
+    }
+}
 
 void ConfigureGraphics::setConfiguration() {
     ui->toggle_hw_renderer->setChecked(Settings::values.use_hw_renderer);
@@ -42,6 +54,10 @@ void ConfigureGraphics::setConfiguration() {
     ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->factor_3d->setValue(Settings::values.factor_3d);
     ui->toggle_3d->setChecked(Settings::values.toggle_3d);
+    {
+        bg_color.setRgbF(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue);
+        ui->layout_bg->setStyleSheet("QPushButton { background-color: " + bg_color.name() + ";}");
+    }
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
 }
@@ -59,6 +75,9 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.frame_limit = ui->frame_limit->value();
     Settings::values.factor_3d = ui->factor_3d->value();
     Settings::values.toggle_3d = ui->toggle_3d->isChecked();
+    Settings::values.bg_red = bg_color.redF();
+    Settings::values.bg_green = bg_color.greenF();
+    Settings::values.bg_blue = bg_color.blueF();
     Settings::values.layout_option =
         static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
     Settings::values.swap_screen = ui->swap_screen->isChecked();
