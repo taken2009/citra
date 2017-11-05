@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QTimer>
+#include <QTranslator>
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
@@ -177,6 +178,8 @@ private slots:
     void ToggleWindowMode();
     void OnCreateGraphicsSurfaceViewer();
     void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnLoadTranslation();
+    void OnUnloadTranslation();
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
     void OnUpdateFound(bool found, bool error);
@@ -185,6 +188,8 @@ private slots:
 
 private:
     void UpdateStatusBar();
+    void LoadTranslation();
+    void SetupUIStrings();
 
     Ui::MainWindow ui;
 
@@ -232,6 +237,8 @@ private:
     Network::RoomMember::CallbackHandle<Network::RoomMember::State> state_callback_handle;
 
     QAction* actions_recent_files[max_recent_files_item];
+
+    QTranslator translator;
 
 protected:
     void dropEvent(QDropEvent* event) override;
