@@ -122,6 +122,11 @@ target_sources(citra-qt
         ${UIS}
 )
 
+if (GENERATE_QT_TRANSLATION)
+    qt5_create_translation(QM_FILES ${SRCS} ${HEADERS} ${UIS} translation.ts)
+    add_custom_target(translation ALL DEPENDS ${QM_FILES})
+endif()
+
 if (APPLE)
     set(MACOSX_ICON "../../dist/citra.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
