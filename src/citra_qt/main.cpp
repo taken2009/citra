@@ -104,6 +104,8 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     // register size_t to use in slots and signals
     qRegisterMetaType<size_t>("size_t");
 
+    LoadTranslation();
+
     Pica::g_debug_context = Pica::DebugContext::Construct();
     setAcceptDrops(true);
     ui.setupUi(this);
@@ -133,8 +135,8 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
 
     qRegisterMetaType<Common::WebResult>();
 
-    setWindowTitle(QString("Citra %1| %2-%3")
-                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
+    SetupUIStrings();
+
     show();
 
     game_list->PopulateAsync(UISettings::values.gamedir, UISettings::values.gamedir_deepscan);
@@ -389,6 +391,9 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Install_CIA, &QAction::triggered, this, &GMainWindow::OnMenuInstallCIA);
     connect(ui.action_Select_Game_List_Root, &QAction::triggered, this,
             &GMainWindow::OnMenuSelectGameListRoot);
+    connect(ui.action_Load_Translation, &QAction::triggered, this, &GMainWindow::OnLoadTranslation);
+    connect(ui.action_Unload_Translation, &QAction::triggered, this,
+            &GMainWindow::OnUnloadTranslation);
     connect(ui.action_Exit, &QAction::triggered, this, &QMainWindow::close);
 
     // Emulation
@@ -1235,6 +1240,50 @@ void GMainWindow::ChangeRoomState() {
         ui.action_Start_Room->setEnabled(true);
         ui.action_Stop_Room->setDisabled(true);
     }
+}
+
+void GMainWindow::OnLoadTranslation() {
+    QString filename = QFileDialog::getOpenFileName(this, tr("Load Translation File"), QString(),
+                                                    tr("Translation file (*.qm);;All files (*.*)"));
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    if (!UISettings::values.translation_file.isEmpty()) {
+        qApp->removeTranslator(&translator);
+    }
+
+    UISettings::values.translation_file = filename;
+    LoadTranslation();
+    ui.retranslateUi(this);
+    SetupUIStrings();
+}
+
+void GMainWindow::OnUnloadTranslation() {
+    if (!UISettings::values.translation_file.isEmpty()) {
+        qApp->removeTranslator(&translator);
+        UISettings::values.translation_file.clear();
+        ui.retranslateUi(this);
+        SetupUIStrings();
+    }
+}
+
+void GMainWindow::LoadTranslation() {
+    if (!UISettings::values.translation_file.isEmpty()) {
+        if (translator.load(UISettings::values.translation_file)) {
+            qApp->installTranslator(&translator);
+        } else {
+            QMessageBox::critical(
+                this, "Failed to load translation",
+                "Citra cannot load the translation file. The language is reset to English.");
+            UISettings::values.translation_file.clear();
+        }
+    }
+}
+
+void GMainWindow::SetupUIStrings() {
+    setWindowTitle(QString("Citra %1| %2-%3")
+                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
 }
 
 #ifdef main
