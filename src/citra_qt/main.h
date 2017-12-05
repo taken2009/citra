@@ -34,6 +34,7 @@ class QProgressBar;
 class RegistersWidget;
 class Updater;
 class WaitTreeWidget;
+class CheatDialog;
 
 // Multiplayer forward declarations
 class Lobby;
@@ -167,6 +168,7 @@ private slots:
     void OnAnnounceFailed(const Common::WebResult&);
     void OnSwapScreens();
     void OnConfigure();
+    void OnCheats();
     void OnToggleFilterBar();
     void OnDisplayTitleBars(bool);
     void ToggleFullscreen();
@@ -219,6 +221,7 @@ private:
 
     bool explicit_update_check = false;
     bool defer_update_prompt = false;
+    std::shared_ptr<class CheatDialog> cheatWindow;
 
     // Multiplayer windows
     Lobby* lobby = nullptr;
