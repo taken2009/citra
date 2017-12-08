@@ -21,7 +21,7 @@ void Init(u32 system_mode) {
     ConfigMem::Init();
     SharedPage::Init();
 
-    Kernel::MemoryInit(system_mode);
+    Kernel::MemoryInit(2);
 
     Kernel::ResourceLimitsInit();
     Kernel::ThreadingInit();
