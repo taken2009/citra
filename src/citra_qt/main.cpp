@@ -122,6 +122,7 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
 
     ConnectMenuEvents();
     ConnectWidgetEvents();
+    ConnectToolbarEvents();
 
     Network::Init();
 
@@ -400,6 +401,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Start, &QAction::triggered, this, &GMainWindow::OnStartGame);
     connect(ui.action_Pause, &QAction::triggered, this, &GMainWindow::OnPauseGame);
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
+    connect(ui.action_Reset, &QAction::triggered, this, &GMainWindow::OnResetGame);
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
     connect(ui.action_Cheats, SIGNAL(triggered()), this, SLOT(OnCheats()));
 
@@ -431,6 +433,42 @@ void GMainWindow::ConnectMenuEvents() {
             &GMainWindow::OnCheckForUpdates);
     connect(ui.action_Open_Maintenance_Tool, &QAction::triggered, this,
             &GMainWindow::OnOpenUpdater);
+}
+
+void GMainWindow::ConnectToolbarEvents(){
+    // File
+    connect(ui.action_Toolbar_Load_File, &QAction::triggered, this, &GMainWindow::OnMenuLoadFile);
+
+    // Toggle fullscreen
+    connect(ui.action_Toolbar_Toggle_Fullscreen, &QAction::triggered, this, [this] {
+        if (isFullScreen()) {
+            showNormal();
+            ui.action_Toolbar_Toggle_Fullscreen->setIcon(QIcon(":toolbar_icons/rc/fullscreen.png"));
+        } else {
+            showFullScreen();
+            ui.action_Toolbar_Toggle_Fullscreen->setIcon(QIcon(":toolbar_icons/rc/fullscreen_exit.png"));
+        }
+     } );
+
+    // Emulation
+    connect(ui.action_Toolbar_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
+    connect(ui.action_Toolbar_Start_Pause, &QAction::triggered, this, [this] {
+        if (emulation_running) {
+            OnPauseGame();
+            emulation_running = false;
+        } else {
+            OnStartGame();
+            emulation_running = true;
+        }
+    } );
+    connect(ui.action_Toolbar_Reset, &QAction::triggered, this, &GMainWindow::OnResetGame);
+    ui.action_Toolbar_Reset->setShortcut(tr("F12"));
+
+    // Configure
+    connect(ui.action_Toolbar_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
+
+    // Cheats
+    connect(ui.action_Toolbar_Cheats, &QAction::triggered, this, &GMainWindow::OnCheats);
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -634,6 +672,7 @@ void GMainWindow::BootGame(const QString& filename) {
     render_window->show();
     render_window->setFocus();
 
+    current_game_path = filename;
     emulation_running = true;
     if (ui.action_Fullscreen->isChecked()) {
         ShowFullscreen();
@@ -661,11 +700,18 @@ void GMainWindow::ShutdownGame() {
     disconnect(render_window, SIGNAL(Closed()), this, SLOT(OnStopGame()));
 
     // Update the GUI
+    ui.action_Toolbar_Start_Pause->setEnabled(false);
+    ui.action_Toolbar_Start_Pause->setIcon(QIcon(":toolbar_icons/rc/play.png"));
+    ui.action_Toolbar_Start_Pause->setToolTip(tr("Start"));
+    ui.action_Toolbar_Stop->setEnabled(false);
+    ui.action_Toolbar_Cheats->setEnabled(false);
+    ui.action_Toolbar_Reset->setEnabled(false);
     ui.action_Cheats->setEnabled(false);
     ui.action_Start->setEnabled(false);
     ui.action_Start->setText(tr("Start"));
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(false);
+    ui.action_Reset->setEnabled(false);
     render_window->hide();
     game_list->show();
     game_list->setFilterFocus();
@@ -870,6 +916,15 @@ void GMainWindow::OnStartGame() {
 
     ui.action_Pause->setEnabled(true);
     ui.action_Stop->setEnabled(true);
+    ui.action_Reset->setEnabled(true);
+
+    ui.action_Toolbar_Start_Pause->setEnabled(true);
+    ui.action_Toolbar_Start_Pause->setIcon(QIcon(":toolbar_icons/rc/pause.png"));
+    ui.action_Toolbar_Start_Pause->setToolTip(tr("Pause"));
+
+    ui.action_Toolbar_Stop->setEnabled(true);
+    ui.action_Toolbar_Cheats->setEnabled(true);
+    ui.action_Toolbar_Reset->setEnabled(true);
 }
 
 void GMainWindow::OnPauseGame() {
@@ -878,6 +933,14 @@ void GMainWindow::OnPauseGame() {
     ui.action_Start->setEnabled(true);
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(true);
+
+    ui.action_Toolbar_Start_Pause->setIcon(QIcon(":toolbar_icons/rc/play.png"));
+    ui.action_Toolbar_Start_Pause->setToolTip(tr("Continue"));
+}
+
+void GMainWindow::OnResetGame() {
+    ShutdownGame();
+    BootGame(current_game_path);
 }
 
 void GMainWindow::OnStopGame() {
@@ -899,6 +962,7 @@ void GMainWindow::ShowFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
         UISettings::values.geometry = saveGeometry();
         ui.menubar->hide();
+        ui.toolbar->hide();
         statusBar()->hide();
         showFullScreen();
     } else {
@@ -911,6 +975,7 @@ void GMainWindow::HideFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
         statusBar()->setVisible(ui.action_Show_Status_Bar->isChecked());
         ui.menubar->show();
+        ui.toolbar->show();
         showNormal();
         restoreGeometry(UISettings::values.geometry);
     } else {
