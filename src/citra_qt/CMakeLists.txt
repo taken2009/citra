@@ -49,6 +49,20 @@ add_executable(citra-qt
     debugger/registers.h
     debugger/wait_tree.cpp
     debugger/wait_tree.h
+    multiplayer/chat_room.cpp
+    multiplayer/chat_room.h
+    multiplayer/client_room.cpp
+    multiplayer/client_room.h
+    multiplayer/direct_connect.cpp
+    multiplayer/direct_connect.h
+    multiplayer/host_room.cpp
+    multiplayer/host_room.h
+    multiplayer/lobby.cpp
+    multiplayer/lobby.h
+    multiplayer/lobby_p.h
+    multiplayer/message.cpp
+    multiplayer/message.h
+    multiplayer/validation.h
     game_list.cpp
     game_list.h
     game_list_p.h
@@ -63,6 +77,8 @@ add_executable(citra-qt
     updater/updater_p.h
     util/spinbox.cpp
     util/spinbox.h
+    util/clickable_label.cpp
+    util/clickable_label.h
     util/util.cpp
     util/util.h
 )
@@ -80,6 +96,11 @@ set(UIS
     aboutdialog.ui
     hotkeys.ui
     main.ui
+    multiplayer/direct_connect.ui
+    multiplayer/lobby.ui
+    multiplayer/chat_room.ui
+    multiplayer/client_room.ui
+    multiplayer/host_room.ui
 )
 
 file(GLOB_RECURSE ICONS ${CMAKE_SOURCE_DIR}/dist/icons/*)
