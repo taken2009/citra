@@ -19,6 +19,7 @@
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/camera/qt_multimedia_camera.h"
 #include "citra_qt/camera/still_image_camera.h"
+#include "citra_qt/cheat_gui.h"
 #include "citra_qt/compatdb.h"
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_dialog.h"
@@ -382,6 +383,7 @@ void GMainWindow::RestoreUIState() {
     microProfileDialog->setVisible(UISettings::values.microprofile_visible);
 #endif
 
+    ui.action_Cheats->setEnabled(false);
     game_list->LoadInterfaceLayout();
 
     ui.action_Single_Window_Mode->setChecked(UISettings::values.single_window_mode);
@@ -437,6 +439,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Report_Compatibility, &QAction::triggered, this,
             &GMainWindow::OnMenuReportCompatibility);
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
+    connect(ui.action_Cheats, SIGNAL(triggered()), this, SLOT(OnCheats()));
 
     // View
     connect(ui.action_Single_Window_Mode, &QAction::triggered, this,
@@ -715,6 +718,7 @@ void GMainWindow::ShutdownGame() {
     disconnect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
 
     // Update the GUI
+    ui.action_Cheats->setEnabled(false);
     ui.action_Start->setEnabled(false);
     ui.action_Start->setText(tr("Start"));
     ui.action_Pause->setEnabled(false);
@@ -989,6 +993,7 @@ void GMainWindow::OnStartGame() {
 
     ui.action_Start->setEnabled(false);
     ui.action_Start->setText(tr("Continue"));
+    ui.action_Cheats->setEnabled(true);
 
     ui.action_Pause->setEnabled(true);
     ui.action_Stop->setEnabled(true);
@@ -1147,6 +1152,14 @@ void GMainWindow::OnToggleFilterBar() {
     } else {
         game_list->clearFilter();
     }
+}
+
+void GMainWindow::OnCheats() {
+    if (cheatWindow == nullptr)
+    {
+        cheatWindow = std::make_shared<CheatDialog>(this);
+    }
+    cheatWindow->show();
 }
 
 void GMainWindow::OnCreateGraphicsSurfaceViewer() {
