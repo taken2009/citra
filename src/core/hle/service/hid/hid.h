@@ -333,4 +333,6 @@ void InstallInterfaces(SM::ServiceManager& service_manager);
 
 /// Reload input devices. Used when input configuration changed
 void ReloadInputDevices();
+
+PadState& GetInputsThisFrame();
 } // namespace Service::HID
