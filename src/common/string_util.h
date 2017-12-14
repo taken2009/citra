@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cctype>
 #include <cstdarg>
 #include <cstddef>
+#include <functional>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -135,6 +138,9 @@ bool ComparePartialString(InIt begin, InIt end, const char* other) {
  */
 std::string StringFromFixedZeroTerminatedBuffer(const char* buffer, size_t max_len);
 
+std::string Trim(const std::string& str, const std::string delimiters = " \f\n\r\t\v");
+
+std::string Join(const std::vector<std::string>& elements, const char* const separator);
 /**
  * Attempts to trim an arbitrary prefix from `path`, leaving only the part starting at `root`. It's
  * intended to be used to strip a system-specific build directory from the `__FILE__` macro,
