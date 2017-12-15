@@ -90,9 +90,14 @@ struct ConsoleCountryInfo {
     u8 country_code; ///< The country code of the console
 };
 static_assert(sizeof(ConsoleCountryInfo) == 4, "ConsoleCountryInfo must be exactly 4 bytes");
-}
 
-static const ConsoleModelInfo CONSOLE_MODEL = {NINTENDO_3DS_XL, {0, 0, 0}};
+struct ConfigBlockDataSize2 {
+    u8 data[2];
+};
+
+} // namespace
+
+static const ConsoleModelInfo CONSOLE_MODEL = { (Settings::values.is_new_3ds ? NEW_NINTENDO_3DS_XL : NINTENDO_3DS_XL),{ 0, 0, 0 } };
 static const u8 CONSOLE_LANGUAGE = LANGUAGE_EN;
 static const UsernameBlock CONSOLE_USERNAME_BLOCK = {u"CITRA", 0, 0};
 static const BirthdayBlock PROFILE_BIRTHDAY = {3, 25}; // March 25th, 2014
@@ -100,6 +105,9 @@ static const u8 SOUND_OUTPUT_MODE = SOUND_SURROUND;
 static const u8 UNITED_STATES_COUNTRY_ID = 49;
 /// TODO(Subv): Find what the other bytes are
 static const ConsoleCountryInfo COUNTRY_INFO = {{0, 0, 0}, UNITED_STATES_COUNTRY_ID};
+
+static const ConfigBlockDataSize2 UNKNOWN_CONFIG_0x50000 = { { 0x00, 0x20 } };
+static const ConfigBlockDataSize2 UNKNOWN_CONFIG_0x50001 = { { 0xA0, 0xE3 } };
 
 /**
  * TODO(Subv): Find out what this actually is, these values fix some NaN uniforms in some games,
