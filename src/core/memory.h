@@ -113,11 +113,6 @@ enum : PAddr {
     FCRAM_N3DS_SIZE = 0x10000000, ///< FCRAM size on the New 3DS (256MB)
     FCRAM_PADDR_END = FCRAM_PADDR + FCRAM_SIZE,
     FCRAM_N3DS_PADDR_END = FCRAM_PADDR + FCRAM_N3DS_SIZE,
-
-    /// New_3DS_FCRAM
-    New_3DS_FCRAM_EX_PADDR = 0x28000000,
-    New_3DS_FCRAM_EX_SIZE = 0x08000000, ///< FCRAM size (128MB)
-    New_3DS_FCRAM_EX_PADDR_END = New_3DS_FCRAM_EX_PADDR + New_3DS_FCRAM_EX_SIZE
 };
 
 /// Virtual user-space memory regions
