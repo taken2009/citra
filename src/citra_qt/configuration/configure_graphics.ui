@@ -51,6 +51,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="toggle_bos">
+          <property name="text">
+           <string>Prevent Speeddown But Possibilities of Bugs</string>
+          </property>
+         </widget>
+        </item>
+        <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
               <widget class="QLabel" name="label">
