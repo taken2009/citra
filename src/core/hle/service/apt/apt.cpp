@@ -237,8 +237,12 @@ static AppletSlotData* GetAppletSlotData(AppletAttributes attributes) {
     return &applet_slots[static_cast<size_t>(slot)];
 }
 
+/// stores the state for CancelParameter
+static bool cancelled = false;
+
 void SendParameter(const MessageParameter& parameter) {
     next_parameter = parameter;
+    cancelled = false;
     // Signal the event to let the receiver know that a new parameter is ready to be read
     auto* const slot_data = GetAppletSlotData(static_cast<AppletId>(parameter.destination_id));
     if (slot_data == nullptr) {
@@ -618,6 +622,12 @@ void ReceiveParameter(Service::Interface* self) {
 
     size_t static_buff_size;
     VAddr buffer = rp.PeekStaticBuffer(0, &static_buff_size);
+
+    if (cancelled) {
+        IPC::RequestParser rp();
+        return;
+    }
+
     if (buffer_size > static_buff_size)
         LOG_WARNING(
             Service_APT,
@@ -667,6 +677,12 @@ void GlanceParameter(Service::Interface* self) {
 
     size_t static_buff_size;
     VAddr buffer = rp.PeekStaticBuffer(0, &static_buff_size);
+
+    if (cancelled) {
+        IPC::RequestParser rp();
+        return;
+    }
+
     if (buffer_size > static_buff_size)
         LOG_WARNING(
             Service_APT,
@@ -717,6 +733,8 @@ void CancelParameter(Service::Interface* self) {
     u32 sender_appid = rp.Pop<u32>();
     bool check_receiver = rp.Pop<bool>();
     u32 receiver_appid = rp.Pop<u32>();
+
+    cancelled = true;
 
     bool cancellation_success = true;
 
@@ -1206,6 +1224,13 @@ void CheckNew3DS(Service::Interface* self) {
     PTM::CheckNew3DS(rb);
 
     LOG_WARNING(Service_APT, "(STUBBED) called");
+}
+
+void ReplySleepQuery(Service::Interface* self) {
+    u32* cmd_buff = Kernel::GetCommandBuffer();
+
+    cmd_buff[1] = RESULT_SUCCESS.raw;
+    LOG_WARNING(Service_APT, "(STUBBED) ReplySleepQuery called");
 }
 
 void Init() {
