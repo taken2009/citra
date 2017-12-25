@@ -100,8 +100,8 @@ public:
 
     template <typename T>
     void PushEnum(T value) {
-        static_assert(std::is_enum<T>(), "T must be an enum type within a PushEnum call.");
-        static_assert(!std::is_convertible<T, int>(),
+        static_assert(std::is_enum<T>::value(), "T must be an enum type within a PushEnum call.");
+        static_assert(!std::is_convertible<T, int>::value(),
                       "enum type in PushEnum must be a strongly typed enum.");
         static_assert(sizeof(value) < sizeof(u64), "64-bit enums may not be pushed.");
         Push(static_cast<std::underlying_type_t<T>>(value));
