@@ -974,9 +974,10 @@ void GMainWindow::ShowFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
         UISettings::values.geometry = saveGeometry();
         ui.menubar->hide();
-        ui.toolbar->hide();
         statusBar()->hide();
         showFullScreen();
+        if(ui.action_Show_Toolbar->isChecked())
+            ui.toolbar->hide();
     } else {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
         render_window->showFullScreen();
@@ -987,9 +988,10 @@ void GMainWindow::HideFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
         statusBar()->setVisible(ui.action_Show_Status_Bar->isChecked());
         ui.menubar->show();
-        ui.toolbar->show();
         showNormal();
         restoreGeometry(UISettings::values.geometry);
+        if(ui.action_Show_Toolbar->isChecked())
+            ui.toolbar->show();
     } else {
         render_window->showNormal();
         render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
