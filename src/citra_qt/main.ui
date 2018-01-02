@@ -103,6 +103,7 @@
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
     <addaction name="action_Show_Toolbar"/>
+    <addaction name="action_limitframe"/>
     <addaction name="menu_View_Debugging"/>
    </widget>
    <widget class="QMenu" name="menu_Multiplayer">
@@ -283,6 +284,14 @@
    </property>
    <property name="text">
     <string>Show Tool Bar</string>
+   </property>
+  </action>
+  <action name="action_limitframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Frame Limit</string>
    </property>
   </action>
   <action name="action_Select_Game_List_Root">

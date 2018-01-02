@@ -188,6 +188,7 @@ private slots:
     void OnCheckForUpdates();
     void OnOpenUpdater();
     void Onshowtoolbar();
+    void Onframelimit();
 
 private:
     void UpdateStatusBar();

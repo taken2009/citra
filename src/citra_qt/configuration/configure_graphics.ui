@@ -44,13 +44,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="toggle_framelimit">
-          <property name="text">
-           <string>Limit framerate</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="toggle_bos">
           <property name="text">
            <string>Ignore format reinterpretation</string>

@@ -36,6 +36,7 @@ struct Values {
     bool show_filter_bar;
     bool show_status_bar;
     bool Show_Toolbar;
+    bool limitframe;
 
     bool confirm_before_closing;
     bool first_start;

@@ -371,6 +371,8 @@ void GMainWindow::RestoreUIState() {
     statusBar()->setVisible(ui.action_Show_Status_Bar->isChecked());
 
     ui.action_Show_Toolbar->setChecked(UISettings::values.Show_Toolbar);
+
+    ui.action_limitframe->setChecked(UISettings::values.limitframe);
 }
 
 void GMainWindow::ConnectWidgetEvents() {
@@ -418,6 +420,8 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Show_Status_Bar, &QAction::triggered, statusBar(), &QStatusBar::setVisible);
     connect(ui.action_Show_Toolbar, &QAction::triggered, this, &GMainWindow::Onshowtoolbar);
     ui.action_Show_Toolbar->setShortcut(tr("CTRL+D"));
+    connect(ui.action_limitframe, &QAction::triggered, this, &GMainWindow::Onframelimit);
+    ui.action_limitframe->setShortcut(tr("CTRL+Z"));
 
     // Multiplayer
     connect(ui.action_View_Lobby, &QAction::triggered, this, &GMainWindow::OnViewLobby);
@@ -1045,6 +1049,10 @@ void GMainWindow::Onshowtoolbar(){
     }
 }
  
+void GMainWindow::Onframelimit(){
+    Settings::values.toggle_framelimit = ui.action_limitframe->isChecked();
+}
+
 void GMainWindow::OnToggleFilterBar() {
     game_list->setFilterVisible(ui.action_Show_Filter_Bar->isChecked());
     if (ui.action_Show_Filter_Bar->isChecked()) {
@@ -1245,6 +1253,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     UISettings::values.show_filter_bar = ui.action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui.action_Show_Status_Bar->isChecked();
     UISettings::values.Show_Toolbar = ui.action_Show_Toolbar->isChecked();
+    UISettings::values.limitframe = ui.action_limitframe->isChecked();
     UISettings::values.first_start = false;
 
     game_list->SaveInterfaceLayout();
