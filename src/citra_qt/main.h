@@ -106,6 +106,7 @@ private:
     void InitializeHotkeys();
 
     void SetDefaultUIGeometry();
+    void SyncMenuUISettings();
     void RestoreUIState();
 
     void ConnectWidgetEvents();
@@ -170,12 +171,14 @@ private slots:
     void OnMenuRecentFile();
     void OnNetworkStateChanged(const Network::RoomMember::State& state);
     void OnAnnounceFailed(const Common::WebResult&);
-    void OnSwapScreens();
     void OnConfigure();
     void OnCheats();
     void OnToggleFilterBar();
     void OnDisplayTitleBars(bool);
     void ToggleFullscreen();
+    void ChangeScreenLayout();
+    void ToggleScreenLayout();
+    void SwapScreens();
     void ShowFullscreen();
     void HideFullscreen();
     void ToggleWindowMode();
