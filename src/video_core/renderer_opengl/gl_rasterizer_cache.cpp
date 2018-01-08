@@ -1108,6 +1108,23 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(
     params.is_tiled = true;
     params.pixel_format = SurfaceParams::PixelFormatFromTextureFormat(info.format);
     params.UpdateParams();
+
+    if (info.width % 8 != 0 || info.height % 8 != 0) {
+        Surface src_surface;
+        MathUtil::Rectangle<u32> rect;
+        std::tie(src_surface, rect) = GetSurfaceSubRect(params, ScaleMatch::Ignore, true);
+
+        params.res_scale = src_surface->res_scale;
+        Surface tmp_surface = CreateSurface(params);
+        BlitTextures(src_surface->texture.handle, rect, tmp_surface->texture.handle,
+                     tmp_surface->GetScaledRect(),
+                     SurfaceParams::GetFormatType(params.pixel_format), read_framebuffer.handle,
+                     draw_framebuffer.handle);
+
+        remove_surfaces.emplace(tmp_surface);
+        return tmp_surface;
+    }
+
     return GetSurface(params, ScaleMatch::Ignore, true);
 }
 
@@ -1424,11 +1441,19 @@ Surface RasterizerCacheOpenGL::CreateSurface(const SurfaceParams& params) {
 }
 
 void RasterizerCacheOpenGL::RegisterSurface(const Surface& surface) {
+    if (surface->registered) {
+        return;
+    }
+    surface->registered = true;
     surface_cache.add({surface->GetInterval(), SurfaceSet{surface}});
     UpdatePagesCachedCount(surface->addr, surface->size, 1);
 }
 
 void RasterizerCacheOpenGL::UnregisterSurface(const Surface& surface) {
+    if (!surface->registered) {
+        return;
+    }
+    surface->registered = false;
     UpdatePagesCachedCount(surface->addr, surface->size, -1);
     surface_cache.subtract({surface->GetInterval(), SurfaceSet{surface}});
 }
