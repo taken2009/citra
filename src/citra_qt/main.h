@@ -108,6 +108,7 @@ private:
     void SetDefaultUIGeometry();
     void SyncMenuUISettings();
     void RestoreUIState();
+    void FramelimitUISettings();
 
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
@@ -193,6 +194,8 @@ private slots:
     void OnOpenUpdater();
     void OnLanguageChanged(const QString& locale);
     void Onshowtoolbar();
+    void Changeframelimit();
+    void ToggleFramelimit();
 
 private:
     void UpdateStatusBar();
