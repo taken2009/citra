@@ -108,6 +108,7 @@ private:
     void SetDefaultUIGeometry();
     void SyncMenuUISettings();
     void RestoreUIState();
+    void FramelimitUISettings();
 
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
@@ -192,6 +193,8 @@ private slots:
     void OnCheckForUpdates();
     void OnOpenUpdater();
     void Onshowtoolbar();
+    void Changeframelimit();
+    void ToggleFramelimit();
 
 private:
     void UpdateStatusBar();
