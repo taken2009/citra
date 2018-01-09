@@ -21,6 +21,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     ui->frame_limit->setEnabled(Settings::values.use_frame_limit);
     connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
             &QSpinBox::setEnabled);
+    ui->toggle_bos->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 
     ui->layoutBox->setEnabled(!Settings::values.custom_layout);
 
@@ -66,6 +67,7 @@ void ConfigureGraphics::setConfiguration() {
     ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->factor_3d->setValue(Settings::values.factor_3d);
     ui->toggle_3d->setChecked(Settings::values.toggle_3d);
+    ui->toggle_bos->setChecked(Settings::values.use_bos);
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
     bg_color = QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
@@ -87,6 +89,7 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.frame_limit = ui->frame_limit->value();
     Settings::values.factor_3d = ui->factor_3d->value();
     Settings::values.toggle_3d = ui->toggle_3d->isChecked();
+    Settings::values.use_bos = ui->toggle_bos->isChecked();
     Settings::values.layout_option =
         static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
     Settings::values.swap_screen = ui->swap_screen->isChecked();
