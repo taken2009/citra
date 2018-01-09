@@ -19,6 +19,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     ui->frame_limit->setEnabled(Settings::values.use_frame_limit);
     connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
             &QSpinBox::setEnabled);
+    ui->toggle_bos->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 
     if (Settings::values.custom_layout || Settings::values.toggle_3d) {
         ui->layoutBox->setEnabled(false);
@@ -68,6 +69,7 @@ void ConfigureGraphics::setConfiguration() {
         bg_color.setRgbF(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue);
         ui->layout_bg->setStyleSheet("QPushButton { background-color: " + bg_color.name() + ";}");
     }
+    ui->toggle_bos->setChecked(Settings::values.use_bos);
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
 }
@@ -104,6 +106,7 @@ void ConfigureGraphics::applyConfiguration() {
                 static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
         }
     }
+    Settings::values.use_bos = ui->toggle_bos->isChecked();
     Settings::values.bg_red = bg_color.redF();
     Settings::values.bg_green = bg_color.greenF();
     Settings::values.bg_blue = bg_color.blueF();
