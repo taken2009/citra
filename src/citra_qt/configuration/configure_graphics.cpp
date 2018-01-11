@@ -47,6 +47,7 @@ void ConfigureGraphics::setConfiguration() {
     ui->toggle_bos->setChecked(Settings::values.use_bos);
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
+    ui->FMV_hack->setChecked(Settings::values.FMV_hack);
 }
 
 void ConfigureGraphics::applyConfiguration() {
@@ -63,6 +64,7 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.layout_option =
         static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
     Settings::values.swap_screen = ui->swap_screen->isChecked();
+    Settings::values.FMV_hack = ui->FMV_hack->isChecked();
     Settings::Apply();
 }
 
