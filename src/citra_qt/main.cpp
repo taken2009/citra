@@ -51,6 +51,7 @@
 #include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/frontend/camera/v4l2_camera.h"
 #include "core/file_sys/archive_source_sd_savedata.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/service/fs/archive.h"
@@ -1528,6 +1529,10 @@ int main(int argc, char* argv[]) {
     GMainWindow main_window;
     // After settings have been loaded by GMainWindow, apply the filter
     log_filter.ParseFilterString(Settings::values.log_filter);
+
+    #ifdef __linux__
+    Camera::RegisterFactory("V4L2", std::make_unique<Camera::V4L2CameraFactory>());
+#endif
 
     main_window.show();
     return app.exec();
