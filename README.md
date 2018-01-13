@@ -1,3 +1,25 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+|PR Number|Title|Author|Merge Success|
+|----|----|----|----|
+|[2](https://github.com/citra-emu/citra-canary/pull/2)|Canary Base|j-selby|true|
+|[3353](https://github.com/citra-emu/citra/pull/3353)|citra-qt: Add customizable speed limit target|jroweboy|true|
+|[3325](https://github.com/citra-emu/citra/pull/3325)|Add ability to send test cases through telemetry|BreadFish64|true|
+|[3281](https://github.com/citra-emu/citra/pull/3281)|Texture Cache Rework|jroweboy|true|
+|[3272](https://github.com/citra-emu/citra/pull/3272)|core/arm: Backend-specific context implementations|MerryMage|true|
+|[3073](https://github.com/citra-emu/citra/pull/3073)|Citra-qt: Add multiplayer ui|jroweboy|true|
+|[3071](https://github.com/citra-emu/citra/pull/3071)|Network: Added an executable to host an dedicated room for local wifi|B3n30|true|
+|[3070](https://github.com/citra-emu/citra/pull/3070)|NWM_UDS: add ConnectToNetwork and DisconnectNetwork|B3n30|true|
+|[3069](https://github.com/citra-emu/citra/pull/3069)|Announce room webservice|B3n30|true|
+|[2882](https://github.com/citra-emu/citra/pull/2882)|Movie (Game Inputs) recording and playback|danzel|true|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra Emulator
