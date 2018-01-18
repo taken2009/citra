@@ -6,6 +6,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory.h"
+#include "core/settings.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
@@ -20,7 +21,11 @@ unsigned int Object::next_object_id;
 void Init(u32 system_mode) {
     ConfigMem::Init();
 
-    Kernel::MemoryInit(system_mode);
+    if (Settings::values.is_new_3ds) {
+        Kernel::MemoryInit(6); // Allocates 124MB to the application(n3ds)
+    }else{
+        Kernel::MemoryInit(2); // Allocates 96MB to the application(o3ds)
+    }
 
     Kernel::ResourceLimitsInit();
     Kernel::ThreadingInit();
