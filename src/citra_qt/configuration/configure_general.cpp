@@ -37,6 +37,8 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 
     this->setConfiguration();
 
+
+    ui->toggle_is_new_3ds->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->updateBox->setVisible(UISettings::values.updater_found);
 }
 
@@ -44,6 +46,7 @@ ConfigureGeneral::~ConfigureGeneral() = default;
 
 void ConfigureGeneral::setConfiguration() {
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
+    ui->toggle_is_new_3ds->setChecked(Settings::values.is_new_3ds);
 
     ui->toggle_update_check->setChecked(UISettings::values.check_for_update_on_start);
     ui->toggle_auto_update->setChecked(UISettings::values.update_on_close);
@@ -65,6 +68,7 @@ void ConfigureGeneral::applyConfiguration() {
     UISettings::values.update_on_close = ui->toggle_auto_update->isChecked();
 
     Settings::values.region_value = ui->region_combobox->currentIndex() - 1;
+    Settings::values.is_new_3ds = ui->toggle_is_new_3ds->isChecked();
 }
 
 void ConfigureGeneral::OnLanguageChanged(int index) {
