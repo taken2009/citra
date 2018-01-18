@@ -7,6 +7,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory.h"
+#include "core/settings.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/shared_page.h"
@@ -17,7 +18,11 @@ namespace Kernel {
 
 /// Initialize the kernel
 KernelSystem::KernelSystem(u32 system_mode) {
-    MemoryInit(system_mode);
+    if (Settings::values.is_new_3ds) {
+        MemoryInit(6); // Allocates 124MB to the application(n3ds)
+    }else{
+        MemoryInit(system_mode);
+    }
 
     resource_limits = std::make_unique<ResourceLimitList>(*this);
     thread_manager = std::make_unique<ThreadManager>();
