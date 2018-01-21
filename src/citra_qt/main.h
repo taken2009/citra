@@ -167,6 +167,8 @@ private slots:
     void ToggleWindowMode();
     void OnCreateGraphicsSurfaceViewer();
     void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnLoadTranslationT();
+    void OnUnloadTranslationT();
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
     void OnUpdateFound(bool found, bool error);
@@ -178,6 +180,8 @@ private:
     void UpdateStatusBar();
     void LoadTranslation();
     void SetupUIStrings();
+    void LoadTranslationT();
+    void SetupUIStringsT();
 
     Ui::MainWindow ui;
 
