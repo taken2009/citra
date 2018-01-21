@@ -232,6 +232,7 @@ void Config::ReadValues() {
     }
     UISettings::values.recent_files = qt_config->value("recentFiles").toStringList();
     UISettings::values.language = qt_config->value("language", "").toString();
+    UISettings::values.translation_file = qt_config->value("translationFile", "").toString();
     qt_config->endGroup();
 
     qt_config->beginGroup("Shortcuts");
@@ -413,6 +414,7 @@ void Config::SaveValues() {
     qt_config->endArray();
     qt_config->setValue("recentFiles", UISettings::values.recent_files);
     qt_config->setValue("language", UISettings::values.language);
+    qt_config->setValue("translationFile", UISettings::values.translation_file);
     qt_config->endGroup();
 
     qt_config->beginGroup("Shortcuts");

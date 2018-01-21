@@ -63,6 +63,7 @@ struct Values {
     QList<UISettings::GameDir> gamedirs;
     QStringList recent_files;
     QString language;
+    QString translation_file;
 
     QString theme;
 
