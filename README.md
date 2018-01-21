@@ -1,3 +1,30 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: 189bd79dffaf450964f5c09547fe7760c999446d
+
+|PR Number|Commit|Title|Author|Merge Success|
+|----|----|----|----|----|
+|[3402](undefined)|980923d3511e549699ec0bdc9022107f0b3a0f78|Allow Installed Apps to Display in the Game List|BreadFish64|true|
+|[3367](undefined)|f42f7dfcab724d8ef7c35875a9221ea65d472b9d|Service/Y2R: convert to ServiceFramework|wwylele|true|
+|[3361](undefined)|9be3ce83db0fac5d2b32fd1e4fc83206d27955ad|Service/PTM: convert to ServiceFramework|wwylele|true|
+|[3353](undefined)|22be430238ae98ac671eda51a8a1bf4fac903c83|citra-qt: Add customizable speed limit target|jroweboy|true|
+|[3325](undefined)|fc1bdc3c626aa088ffa84a9903e134eeddb5dad8|Add ability to send test cases through telemetry|BreadFish64|true|
+|[3281](undefined)|88f652151173c0642ec0ee6d01bf0802ba1abdd4|Texture Cache Rework|jroweboy|true|
+|[3272](undefined)|fb2d34997e13327ad68b2aa7aa8dd64c20397bb1|core/arm: Backend-specific context implementations|MerryMage|true|
+|[3101](undefined)|2052a201c0f60cfff1b043cf1ff631e57f2ad688|Kernel/Threads: Add a new thread status that will allow using a Kernel::Event to put a guest thread to sleep inside an HLE handler until said event is signaled|Subv|true|
+|[3073](undefined)|9c482ee1fa9e373d166b00fede5ad13bf5402827|Citra-qt: Add multiplayer ui|jroweboy|true|
+|[3071](undefined)|3f96a08984b481fbbbf40ec33903f47efeb3cdb1|Network: Added an executable to host an dedicated room for local wifi|B3n30|true|
+|[3070](undefined)|aaec55a8e04826165f30f0f0722ada582498731e|NWM_UDS: change to Service Framework|B3n30|true|
+|[3069](undefined)|a5e63a8c35f02022f2c393c5941f53b2518641fd|Announce room webservice|B3n30|true|
+|[2882](undefined)|0238e0c5e7071a7c450d258a47106610b3b3fbf3|Movie (Game Inputs) recording and playback|danzel|true|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra Emulator
