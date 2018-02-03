@@ -26,6 +26,8 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     connect(ui->renderer_comboBox, SIGNAL(currentIndexChanged(int)), this,
             SLOT(UpdateRenderer(int)));
 
+    ui->AddTicks->setEnabled(Settings::values.FMV_hack);
+    connect(ui->FMV_hack, &QCheckBox::stateChanged, ui->AddTicks, &QSpinBox::setEnabled);
     connect(ui->layout_bg, SIGNAL (released()), this, SLOT (showLayoutBackgroundDialog()));
 }
 
@@ -58,6 +60,8 @@ void ConfigureGraphics::setConfiguration() {
     ui->swap_screen->setChecked(Settings::values.swap_screen);
 
     UpdateRenderer(static_cast<int>(Settings::values.renderer));
+    ui->FMV_hack->setChecked(Settings::values.FMV_hack);
+    ui->AddTicks->setValue(Settings::values.AddTicks);
 }
 
 void ConfigureGraphics::applyConfiguration() {
@@ -88,6 +92,8 @@ void ConfigureGraphics::applyConfiguration() {
     default:
         break;
     }
+    Settings::values.FMV_hack = ui->FMV_hack->isChecked();
+    Settings::values.AddTicks = ui->AddTicks->value();
     Settings::Apply();
 }
 
