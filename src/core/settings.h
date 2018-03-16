@@ -20,6 +20,13 @@ enum class LayoutOption {
     StereoscopicSingleScreen,
 };
 
+enum class FrameOption {
+    zero,
+    single,
+    doubble,
+    triple,
+};
+
 namespace NativeButton {
 enum Values {
     A,
@@ -121,6 +128,7 @@ struct Values {
     bool FMV_hack;
     u16 AddTicks;
 
+    FrameOption frame_option;
     LayoutOption layout_option;
     bool swap_screen;
     bool custom_layout;
