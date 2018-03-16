@@ -235,6 +235,12 @@ void GMainWindow::InitializeWidgets() {
     actionGroup_ScreenLayouts->addAction(ui.action_Screen_Layout_Single_Screen);
     actionGroup_ScreenLayouts->addAction(ui.action_Screen_Layout_Large_Screen);
     actionGroup_ScreenLayouts->addAction(ui.action_Screen_Layout_Side_by_Side);
+
+    QActionGroup *actionGroup_frame = new QActionGroup(this);
+    actionGroup_frame->addAction(ui.action_frame_zero);
+    actionGroup_frame->addAction(ui.action_frame_single);
+    actionGroup_frame->addAction(ui.action_frame_doubble);
+    actionGroup_frame->addAction(ui.action_frame_triple);
 }
 
 void GMainWindow::InitializeDebugWidgets() {
@@ -315,6 +321,7 @@ void GMainWindow::InitializeHotkeys() {
     RegisterHotkey("Main Window", "Continue/Pause", QKeySequence(Qt::Key_F4));
     RegisterHotkey("Main Window", "Swap Screens", QKeySequence(tr("F9")));
     RegisterHotkey("Main Window", "Toggle Screen Layout", QKeySequence(tr("F10")));
+    RegisterHotkey("Main Window", "Toggle Frame Limit", QKeySequence(tr("CTRL+Z")));
     RegisterHotkey("Main Window", "Fullscreen", QKeySequence::FullScreen);
     RegisterHotkey("Main Window", "Exit Fullscreen", QKeySequence(Qt::Key_Escape),
                    Qt::ApplicationShortcut);
@@ -339,6 +346,8 @@ void GMainWindow::InitializeHotkeys() {
             }
         }
     });
+    connect(GetHotkey("Main Window", "Toggle Frame Limit", render_window), &QShortcut::activated, this,
+            &GMainWindow::ToggleFramelimit);
     connect(GetHotkey("Main Window", "Swap Screens", render_window), &QShortcut::activated,
             ui.action_Screen_Layout_Swap_Screens, &QAction::trigger);
     connect(GetHotkey("Main Window", "Toggle Screen Layout", render_window), &QShortcut::activated,
@@ -422,6 +431,8 @@ void GMainWindow::RestoreUIState() {
     Debugger::ToggleConsole();
 
     ui.action_Show_Toolbar->setChecked(UISettings::values.Show_Toolbar);
+
+    FramelimitUISettings();
 }
 
 void GMainWindow::ConnectWidgetEvents() {
@@ -474,6 +485,10 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Show_Status_Bar, &QAction::triggered, statusBar(), &QStatusBar::setVisible);
     connect(ui.action_Show_Toolbar, &QAction::triggered, this, &GMainWindow::Onshowtoolbar);
     ui.action_Show_Toolbar->setShortcut(tr("CTRL+D"));
+    connect(ui.action_frame_single, &QAction::triggered, this, &GMainWindow::Changeframelimit);
+    connect(ui.action_frame_zero, &QAction::triggered, this, &GMainWindow::Changeframelimit);
+    connect(ui.action_frame_doubble, &QAction::triggered, this, &GMainWindow::Changeframelimit);
+    connect(ui.action_frame_triple, &QAction::triggered, this, &GMainWindow::Changeframelimit);
 
     // Multiplayer
     connect(ui.action_View_Lobby, &QAction::triggered, multiplayer_state,
@@ -1248,6 +1263,7 @@ void GMainWindow::OnConfigure() {
         UpdateUITheme();
         emit UpdateThemedIcons();
         SyncMenuUISettings();
+        FramelimitUISettings();
         config->Save();
     }
 }
@@ -1258,6 +1274,55 @@ void GMainWindow::Onshowtoolbar(){
     }else{
         ui.toolbar->hide();
     }
+}
+
+void GMainWindow::Changeframelimit(){
+
+    Settings::FrameOption newlimit = Settings::FrameOption::zero;
+
+    if(ui.action_frame_zero->isChecked()){
+        newlimit = Settings::FrameOption::zero,Settings::values.frame_limit = 0,Settings::values.use_frame_limit = false;
+    }else if (ui.action_frame_single->isChecked()){
+        newlimit = Settings::FrameOption::single,Settings::values.frame_limit = 100,Settings::values.use_frame_limit = true;
+    }else if (ui.action_frame_doubble->isChecked()){
+        newlimit = Settings::FrameOption::doubble,Settings::values.frame_limit = 200,Settings::values.use_frame_limit = true;
+    }else if (ui.action_frame_triple->isChecked()){
+        newlimit = Settings::FrameOption::triple,Settings::values.frame_limit = 300,Settings::values.use_frame_limit = true;
+    }
+
+    Settings::values.frame_option = newlimit;
+    Settings::Apply();
+}
+
+void GMainWindow::ToggleFramelimit(){
+
+    Settings::FrameOption newlimit = Settings::FrameOption::zero;
+
+    switch (Settings::values.frame_option) {
+    case Settings::FrameOption::zero:
+        newlimit = Settings::FrameOption::single,Settings::values.frame_limit = 100,Settings::values.use_frame_limit = true;
+        break;
+    case Settings::FrameOption::single:
+        newlimit = Settings::FrameOption::doubble,Settings::values.frame_limit = 200,Settings::values.use_frame_limit = true;
+        break;
+    case Settings::FrameOption::doubble:
+        newlimit = Settings::FrameOption::triple,Settings::values.frame_limit = 300,Settings::values.use_frame_limit = true;
+        break;
+    case Settings::FrameOption::triple:
+        newlimit = Settings::FrameOption::zero,Settings::values.frame_limit = 0,Settings::values.use_frame_limit = false;
+        break;
+    }
+
+    Settings::values.frame_option = newlimit;
+    FramelimitUISettings();
+    Settings::Apply();
+}
+
+void GMainWindow::FramelimitUISettings(){
+    ui.action_frame_zero->setChecked(Settings::values.frame_option == Settings::FrameOption::zero);
+    ui.action_frame_single->setChecked(Settings::values.frame_option == Settings::FrameOption::single);
+    ui.action_frame_doubble->setChecked(Settings::values.frame_option == Settings::FrameOption::doubble);
+    ui.action_frame_triple->setChecked(Settings::values.frame_option == Settings::FrameOption::triple);
 }
 
 void GMainWindow::OnToggleFilterBar() {
@@ -1292,7 +1357,7 @@ void GMainWindow::UpdateStatusBar() {
 
     auto results = Core::System::GetInstance().GetAndResetPerfStats();
 
-    if (Settings::values.use_frame_limit) {
+    if (Settings::values.use_frame_limit || Settings::values.frame_limit > 0) {
         emu_speed_label->setText(tr("Speed: %1% / %2%")
                                      .arg(results.emulation_speed * 100.0, 0, 'f', 0)
                                      .arg(Settings::values.frame_limit));
