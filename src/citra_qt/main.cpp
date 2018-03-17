@@ -335,7 +335,6 @@ void GMainWindow::InitializeHotkeys() {
     RegisterHotkey("Main Window", "Start Emulation");
     RegisterHotkey("Main Window", "Swap Screens", QKeySequence(tr("F9")));
     RegisterHotkey("Main Window", "Toggle Screen Layout", QKeySequence(tr("F10")));
-    RegisterHotkey("Main Window", "Reset Game", QKeySequence(tr("F12")));
     RegisterHotkey("Main Window", "Toggle Frame Limit", QKeySequence(tr("CTRL+Z")));
     RegisterHotkey("Main Window", "Fullscreen", QKeySequence::FullScreen);
     RegisterHotkey("Main Window", "Exit Fullscreen", QKeySequence(Qt::Key_Escape),
@@ -350,8 +349,6 @@ void GMainWindow::InitializeHotkeys() {
             &GMainWindow::OnMenuLoadFile);
     connect(GetHotkey("Main Window", "Start Emulation", this), &QShortcut::activated, this,
             &GMainWindow::OnStartGame);
-    connect(GetHotkey("Main Window", "Reset Game", this), &QShortcut::activated, this,
-            &GMainWindow::OnResetGame);
     connect(GetHotkey("Main Window", "Toggle Frame Limit", render_window), &QShortcut::activated, this,
             &GMainWindow::ToggleFramelimit);
     connect(GetHotkey("Main Window", "Swap Screens", render_window), &QShortcut::activated,
@@ -474,6 +471,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Report_Compatibility, &QAction::triggered, this,
             &GMainWindow::OnMenuReportCompatibility);
     connect(ui.action_Reset, &QAction::triggered, this, &GMainWindow::OnResetGame);
+    ui.action_Reset->setShortcut(tr("F5"));
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
     connect(ui.action_Cheats, SIGNAL(triggered()), this, SLOT(OnCheats()));
 
