@@ -1,3 +1,25 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: 79d1bcf5ba1c2128f94274b298b71d103f1102ac
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[5](https://github.com/citra-emu/citra-canary/pull/5)|fd2238b|Canary Base|[chris062689](https://github.com/chris062689)|Yes|
+|[3528](https://github.com/citra-emu/citra/pull/3528)|691aadb|use nvidia graphics automatically on laptops with optimus|[BreadFish64](https://github.com/BreadFish64)|Yes|
+|[3501](https://github.com/citra-emu/citra/pull/3501)|0726990|Move WebServices to use LibreSSL + cpp-httplib|[j-selby](https://github.com/j-selby)|Yes|
+|[3499](https://github.com/citra-emu/citra/pull/3499)|b00f85f|Convert PICA Shaders to GLSL|[jroweboy](https://github.com/jroweboy)|Yes|
+|[3489](https://github.com/citra-emu/citra/pull/3489)|29d6e05|NWM_ UDS:Let connected clients handle the eapol packet|[B3n30](https://github.com/B3n30)|Yes|
+|[3484](https://github.com/citra-emu/citra/pull/3484)|92c7bb9|pica/lighting: compute highlight clamp after one-/two-sided diffuse pass|[wwylele](https://github.com/wwylele)|Yes|
+|[3481](https://github.com/citra-emu/citra/pull/3481)|ac836b7|NWM_UDS:: Check flags in SendTo|[B3n30](https://github.com/B3n30)|Yes|
+|[3073](https://github.com/citra-emu/citra/pull/3073)|4f658dd|Citra-qt: Add multiplayer ui|[jroweboy](https://github.com/jroweboy)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra Emulator
