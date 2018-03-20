@@ -97,6 +97,7 @@ private:
 
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
+    void ConnectToolbarEvents();
 
     bool LoadROM(const QString& filename);
     void BootGame(const QString& filename);
@@ -143,6 +144,7 @@ private slots:
     void OnPauseGame();
     void OnStopGame();
     void OnMenuReportCompatibility();
+    void OnResetGame();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);
@@ -175,6 +177,7 @@ private slots:
     void OnCheckForUpdates();
     void OnOpenUpdater();
     void OnLanguageChanged(const QString& locale);
+    void Onshowtoolbar();
 
 private:
     void UpdateStatusBar();
@@ -182,6 +185,8 @@ private:
     void SetupUIStrings();
     void LoadTranslationT();
     void SetupUIStringsT();
+
+    QString current_game_path; // To reset the game
 
     Ui::MainWindow ui;
 
