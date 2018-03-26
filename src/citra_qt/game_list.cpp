@@ -2,11 +2,14 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <QApplication>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
@@ -46,7 +49,7 @@ bool GameList::SearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* e
     // If no function key changes the searchfield's text the filter doesn't need to get reloaded
     if (edit_filter_text == edit_filter_text_old) {
         switch (keyEvent->key()) {
-        // Escape: Resets the searchfield
+            // Escape: Resets the searchfield
         case Qt::Key_Escape: {
             if (edit_filter_text_old.isEmpty()) {
                 return QObject::eventFilter(obj, event);
@@ -56,9 +59,9 @@ bool GameList::SearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* e
             }
             break;
         }
-        // Return and Enter
-        // If the enter key gets pressed first checks how many and which entry is visible
-        // If there is only one result launch this game
+            // Return and Enter
+            // If the enter key gets pressed first checks how many and which entry is visible
+            // If there is only one result launch this game
         case Qt::Key_Return:
         case Qt::Key_Enter: {
             QStandardItemModel* item_model = new QStandardItemModel(gamelist->tree_view);
@@ -227,6 +230,7 @@ GameList::GameList(GMainWindow* parent) : QWidget{parent} {
 
     item_model->insertColumns(0, COLUMN_COUNT);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, "Name");
+    item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, "Compatibility");
     item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, "File type");
     item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, "Size");
 
@@ -341,6 +345,39 @@ QStandardItemModel* GameList::GetModel() const {
     return item_model;
 }
 
+void GameList::LoadCompatibilityList() {
+    QFile compat_list{":compatibility_list/compatibility_list.json"};
+
+    if (!compat_list.open(QFile::ReadOnly | QFile::Text)) {
+        LOG_ERROR(Frontend, "Unable to open game compatibility list");
+        return;
+    }
+
+    if (compat_list.size() == 0) {
+        LOG_ERROR(Frontend, "Game compatibility list is empty");
+        return;
+    }
+
+    const QByteArray content = compat_list.readAll();
+    if (content.isEmpty()) {
+        LOG_ERROR(Frontend, "Unable to completely read game compatibility list");
+        return;
+    }
+
+    const QString string_content = content;
+    QJsonDocument json = QJsonDocument::fromJson(string_content.toUtf8());
+    QJsonObject list = json.object();
+    QStringList game_ids = list.keys();
+    for (QString id : game_ids) {
+        QJsonObject game = list[id].toObject();
+
+        if (game.contains("compatibility") && game["compatibility"].isString()) {
+            QString compatibility = game["compatibility"].toString();
+            compatibility_list.insert(std::make_pair(id.toUpper().toStdString(), compatibility));
+        }
+    }
+}
+
 void GameList::PopulateAsync(const QString& dir_path, bool deep_scan) {
     if (!FileUtil::Exists(dir_path.toStdString()) ||
         !FileUtil::IsDirectory(dir_path.toStdString())) {
@@ -355,7 +392,7 @@ void GameList::PopulateAsync(const QString& dir_path, bool deep_scan) {
 
     emit ShouldCancelWorker();
 
-    GameListWorker* worker = new GameListWorker(dir_path, deep_scan);
+    GameListWorker* worker = new GameListWorker(dir_path, deep_scan, compatibility_list);
 
     connect(worker, &GameListWorker::EntryReady, this, &GameList::AddEntry, Qt::QueuedConnection);
     connect(worker, &GameListWorker::Finished, this, &GameList::DonePopulating,
@@ -440,8 +477,20 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 return update_smdh;
             }();
 
+            auto it = std::find_if(compatibility_list.begin(), compatibility_list.end(),
+                                   [program_id](const std::pair<std::string, QString>& element) {
+                                       std::string pid =
+                                           Common::StringFromFormat("%016" PRIX64, program_id);
+                                       return element.first == pid;
+                                   });
+
+            QString compatibility("");
+            if (it != compatibility_list.end())
+                compatibility = it->second;
+
             emit EntryReady({
                 new GameListItemPath(QString::fromStdString(physical_name), smdh, program_id),
+                new GameListItemCompat(compatibility),
                 new GameListItem(
                     QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),
                 new GameListItemSize(FileUtil::GetSize(physical_name)),
