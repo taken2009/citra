@@ -533,6 +533,13 @@ void GMainWindow::ConnectToolbarEvents(){
 
     // Cheats
     connect(ui.action_Toolbar_Cheats, &QAction::triggered, this, &GMainWindow::OnCheats);
+
+    // multiplayer
+    connect(ui.action_Toolbar_View_Lobby, &QAction::triggered, multiplayer_state, &MultiplayerState::OnViewLobby);
+    connect(ui.action_Toolbar_Start_Room, &QAction::triggered, multiplayer_state, &MultiplayerState::OnCreateRoom);
+    connect(ui.action_Toolbar_Stop_Room, &QAction::triggered, multiplayer_state, &MultiplayerState::OnCloseRoom);
+    connect(ui.action_Toolbar_Connect_To_Room, &QAction::triggered, multiplayer_state, &MultiplayerState::OnDirectConnectToRoom);
+    connect(ui.action_Toolbar_Chat, &QAction::triggered, multiplayer_state, &MultiplayerState::OnOpenNetworkRoom);
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -769,6 +776,9 @@ void GMainWindow::ShutdownGame() {
     ui.action_Toolbar_Stop->setEnabled(false);
     ui.action_Toolbar_Cheats->setEnabled(false);
     ui.action_Toolbar_Reset->setEnabled(false);
+    ui.action_Toolbar_Start_Room->setEnabled(true);
+    ui.action_Toolbar_Stop_Room->setEnabled(false);
+    ui.action_Toolbar_Chat->setEnabled(false);
     ui.action_Cheats->setEnabled(false);
     ui.action_Start->setEnabled(false);
     ui.action_Start->setText(tr("Start"));
