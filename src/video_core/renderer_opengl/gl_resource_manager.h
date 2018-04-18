@@ -139,11 +139,16 @@ public:
     }
 
     /// Creates a new program from given shader soruce code
-    void Create(const char* vert_shader, const char* frag_shader) {
-        OGLShader vert, frag;
-        vert.Create(vert_shader, GL_VERTEX_SHADER);
-        frag.Create(frag_shader, GL_FRAGMENT_SHADER);
-        Create(false, {vert.handle, frag.handle});
+    void CreateFromSource(const char* vert_shader, const char* geo_shader,
+                          const char* frag_shader) {
+        OGLShader vert, geo, frag;
+        if (vert_shader)
+            vert.Create(vert_shader, GL_VERTEX_SHADER);
+        if (geo_shader)
+            geo.Create(geo_shader, GL_GEOMETRY_SHADER);
+        if (frag_shader)
+            frag.Create(frag_shader, GL_FRAGMENT_SHADER);
+        Create(false, {vert.handle, geo.handle, frag.handle});
     }
 
     /// Deletes the internal OpenGL resource
@@ -168,17 +173,18 @@ public:
         Release();
     }
     OGLPipeline& operator=(OGLPipeline&& o) {
-        Release();
         handle = std::exchange<GLuint>(o.handle, 0);
         return *this;
     }
 
+    /// Creates a new internal OpenGL resource and stores the handle
     void Create() {
         if (handle != 0)
             return;
         glGenProgramPipelines(1, &handle);
     }
 
+    /// Deletes the internal OpenGL resource
     void Release() {
         if (handle == 0)
             return;

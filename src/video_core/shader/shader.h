@@ -174,47 +174,30 @@ struct GSUnitState : public UnitState {
     GSEmitter emitter;
 };
 
-struct Uniforms {
-    // The float uniforms are accessed by the shader JIT using SSE instructions, and are
-    // therefore required to be 16-byte aligned.
-    alignas(16) Math::Vec4<float24> f[96];
+struct ShaderSetup {
+    struct {
+        // The float uniforms are accessed by the shader JIT using SSE instructions, and are
+        // therefore required to be 16-byte aligned.
+        alignas(16) Math::Vec4<float24> f[96];
 
-    std::array<bool, 16> b;
-    std::array<Math::Vec4<u8>, 4> i;
+        std::array<bool, 16> b;
+        std::array<Math::Vec4<u8>, 4> i;
+    } uniforms;
 
     static size_t GetFloatUniformOffset(unsigned index) {
-        return offsetof(Uniforms, f) + index * sizeof(Math::Vec4<float24>);
+        return offsetof(ShaderSetup, uniforms.f) + index * sizeof(Math::Vec4<float24>);
     }
 
     static size_t GetBoolUniformOffset(unsigned index) {
-        return offsetof(Uniforms, b) + index * sizeof(bool);
+        return offsetof(ShaderSetup, uniforms.b) + index * sizeof(bool);
     }
 
     static size_t GetIntUniformOffset(unsigned index) {
-        return offsetof(Uniforms, i) + index * sizeof(Math::Vec4<u8>);
+        return offsetof(ShaderSetup, uniforms.i) + index * sizeof(Math::Vec4<u8>);
     }
-};
-
-struct ShaderSetup {
-    Uniforms uniforms;
 
     std::array<u32, MAX_PROGRAM_CODE_LENGTH> program_code;
-    std::array<u32, MAX_SWIZZLE_DATA_LENGTH> swizzle_data;
-
-    /// Data private to ShaderEngines
-    struct EngineData {
-        unsigned int entry_point;
-        /// Used by the JIT, points to a compiled shader object.
-        const void* cached_shader = nullptr;
-    } engine_data;
-
-    void MarkProgramCodeDirty() {
-        program_code_hash_dirty = true;
-    }
-
-    void MarkSwizzleDataDirty() {
-        swizzle_data_hash_dirty = true;
-    }
+    bool program_code_hash_dirty = true;
 
     u64 GetProgramCodeHash() {
         if (program_code_hash_dirty) {
@@ -224,6 +207,9 @@ struct ShaderSetup {
         return program_code_hash;
     }
 
+    std::array<u32, MAX_SWIZZLE_DATA_LENGTH> swizzle_data;
+    bool swizzle_data_hash_dirty = true;
+
     u64 GetSwizzleDataHash() {
         if (swizzle_data_hash_dirty) {
             swizzle_data_hash = Common::ComputeHash64(&swizzle_data, sizeof(swizzle_data));
@@ -232,11 +218,16 @@ struct ShaderSetup {
         return swizzle_data_hash;
     }
 
+    /// Data private to ShaderEngines
+    struct EngineData {
+        unsigned int entry_point;
+        /// Used by the JIT, points to a compiled shader object.
+        const void* cached_shader = nullptr;
+    } engine_data;
+
 private:
-    bool program_code_hash_dirty = true;
-    bool swizzle_data_hash_dirty = true;
-    u64 program_code_hash = 0xDEADC0DE;
-    u64 swizzle_data_hash = 0xDEADC0DE;
+    u64 program_code_hash;
+    u64 swizzle_data_hash;
 };
 
 class ShaderEngine {

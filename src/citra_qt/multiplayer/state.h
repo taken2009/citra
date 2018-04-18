@@ -21,8 +21,7 @@ class MultiplayerState : public QWidget {
     Q_OBJECT;
 
 public:
-    explicit MultiplayerState(QWidget* parent, QStandardItemModel* game_list, QAction* leave_room,
-                              QAction* show_room);
+    explicit MultiplayerState(QWidget* parent, QStandardItemModel* game_list);
     ~MultiplayerState();
 
     /**
@@ -59,8 +58,6 @@ private:
     ClickableLabel* status_icon = nullptr;
     ClickableLabel* status_text = nullptr;
     QStandardItemModel* game_list_model = nullptr;
-    QAction* leave_room;
-    QAction* show_room;
     std::shared_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
     Network::RoomMember::CallbackHandle<Network::RoomMember::State> state_callback_handle;
 };

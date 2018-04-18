@@ -49,7 +49,7 @@ bool GameList::SearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* e
     // If no function key changes the searchfield's text the filter doesn't need to get reloaded
     if (edit_filter_text == edit_filter_text_old) {
         switch (keyEvent->key()) {
-        // Escape: Resets the searchfield
+            // Escape: Resets the searchfield
         case Qt::Key_Escape: {
             if (edit_filter_text_old.isEmpty()) {
                 return QObject::eventFilter(obj, event);
@@ -59,9 +59,9 @@ bool GameList::SearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* e
             }
             break;
         }
-        // Return and Enter
-        // If the enter key gets pressed first checks how many and which entry is visible
-        // If there is only one result launch this game
+            // Return and Enter
+            // If the enter key gets pressed first checks how many and which entry is visible
+            // If there is only one result launch this game
         case Qt::Key_Return:
         case Qt::Key_Enter: {
             QStandardItemModel* item_model = new QStandardItemModel(gamelist->tree_view);
@@ -341,22 +341,26 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     context_menu.exec(tree_view->viewport()->mapToGlobal(menu_location));
 }
 
+QStandardItemModel* GameList::GetModel() const {
+    return item_model;
+}
+
 void GameList::LoadCompatibilityList() {
     QFile compat_list{":compatibility_list/compatibility_list.json"};
 
     if (!compat_list.open(QFile::ReadOnly | QFile::Text)) {
-        NGLOG_ERROR(Frontend, "Unable to open game compatibility list");
+        LOG_ERROR(Frontend, "Unable to open game compatibility list");
         return;
     }
 
     if (compat_list.size() == 0) {
-        NGLOG_ERROR(Frontend, "Game compatibility list is empty");
+        LOG_ERROR(Frontend, "Game compatibility list is empty");
         return;
     }
 
     const QByteArray content = compat_list.readAll();
     if (content.isEmpty()) {
-        NGLOG_ERROR(Frontend, "Unable to completely read game compatibility list");
+        LOG_ERROR(Frontend, "Unable to completely read game compatibility list");
         return;
     }
 
@@ -372,10 +376,6 @@ void GameList::LoadCompatibilityList() {
             compatibility_list.insert(std::make_pair(id.toUpper().toStdString(), compatibility));
         }
     }
-}
-
-QStandardItemModel* GameList::GetModel() const {
-    return item_model;
 }
 
 void GameList::PopulateAsync(const QString& dir_path, bool deep_scan) {
@@ -484,8 +484,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                                        return element.first == pid;
                                    });
 
-            // The game list uses this as compatibility number for untested games
-            QString compatibility("99");
+            QString compatibility("");
             if (it != compatibility_list.end())
                 compatibility = it->second;
 

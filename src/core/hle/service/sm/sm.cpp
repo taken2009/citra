@@ -48,6 +48,16 @@ ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService
     return MakeResult<Kernel::SharedPtr<Kernel::ServerPort>>(std::move(server_port));
 }
 
+ResultVal<Kernel::SharedPtr<Kernel::ServerPort>> ServiceManager::RegisterService(
+    ServiceFrameworkBase& service) {
+    const std::string name = service.GetServiceName();
+    const int max_sessions = service.GetMaxSessions();
+
+    registered_service_frameworks.emplace(name, service);
+
+    return RegisterService(name, max_sessions);
+}
+
 ResultVal<Kernel::SharedPtr<Kernel::ClientPort>> ServiceManager::GetServicePort(
     const std::string& name) {
 
@@ -66,6 +76,26 @@ ResultVal<Kernel::SharedPtr<Kernel::ClientSession>> ServiceManager::ConnectToSer
     CASCADE_RESULT(auto client_port, GetServicePort(name));
     return client_port->Connect();
 }
+
+void ServiceManager::PauseServices() {
+    for (const auto& service : registered_service_frameworks) {
+        service.second.PauseService();
+    }
+}
+
+void ServiceManager::ResumeServices() {
+    for (const auto& service : registered_service_frameworks) {
+        service.second.ResumeService();
+    }
+}
+
+void ServiceManager::StopServices() {
+    for (const auto& service : registered_service_frameworks) {
+        service.second.StopService();
+    }
+}
+
+std::shared_ptr<ServiceManager> g_service_manager;
 
 } // namespace SM
 } // namespace Service

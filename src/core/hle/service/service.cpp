@@ -7,7 +7,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "core/core.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
@@ -126,7 +125,7 @@ ServiceFrameworkBase::~ServiceFrameworkBase() = default;
 
 void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager) {
     ASSERT(port == nullptr);
-    port = service_manager.RegisterService(service_name, max_sessions).Unwrap();
+    port = service_manager.RegisterService(*this).Unwrap();
     port->SetHleHandler(shared_from_this());
 }
 
@@ -215,47 +214,48 @@ static void AddNamedPort(Interface* interface_) {
 }
 
 void AddService(Interface* interface_) {
-    auto server_port = Core::System::GetInstance()
-                           .ServiceManager()
-                           .RegisterService(interface_->GetPortName(), interface_->GetMaxSessions())
-                           .Unwrap();
+    auto server_port =
+        SM::g_service_manager
+            ->RegisterService(interface_->GetPortName(), interface_->GetMaxSessions())
+            .Unwrap();
     server_port->SetHleHandler(std::shared_ptr<Interface>(interface_));
 }
 
 /// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm) {
-    SM::ServiceManager::InstallInterfaces(sm);
+void Init() {
+    SM::g_service_manager = std::make_shared<SM::ServiceManager>();
+    SM::ServiceManager::InstallInterfaces(SM::g_service_manager);
 
     ERR::InstallInterfaces();
 
-    PXI::InstallInterfaces(*sm);
-    NS::InstallInterfaces(*sm);
-    AC::InstallInterfaces(*sm);
-    LDR::InstallInterfaces(*sm);
-    MIC::InstallInterfaces(*sm);
-    NWM::InstallInterfaces(*sm);
+    PXI::InstallInterfaces(*SM::g_service_manager);
+    NS::InstallInterfaces(*SM::g_service_manager);
+    AC::InstallInterfaces(*SM::g_service_manager);
+    LDR::InstallInterfaces(*SM::g_service_manager);
+    MIC::InstallInterfaces(*SM::g_service_manager);
+    NWM::InstallInterfaces(*SM::g_service_manager);
 
-    FS::InstallInterfaces(*sm);
+    FS::InstallInterfaces(*SM::g_service_manager);
     FS::ArchiveInit();
-    ACT::InstallInterfaces(*sm);
-    AM::InstallInterfaces(*sm);
-    APT::InstallInterfaces(*sm);
+    ACT::InstallInterfaces(*SM::g_service_manager);
+    AM::InstallInterfaces(*SM::g_service_manager);
+    APT::InstallInterfaces(*SM::g_service_manager);
     BOSS::Init();
-    CAM::InstallInterfaces(*sm);
+    CAM::InstallInterfaces(*SM::g_service_manager);
     CECD::Init();
-    CFG::InstallInterfaces(*sm);
+    CFG::InstallInterfaces(*SM::g_service_manager);
     DLP::Init();
-    FRD::InstallInterfaces(*sm);
-    GSP::InstallInterfaces(*sm);
-    HID::InstallInterfaces(*sm);
-    IR::InstallInterfaces(*sm);
+    FRD::InstallInterfaces(*SM::g_service_manager);
+    GSP::InstallInterfaces(*SM::g_service_manager);
+    HID::InstallInterfaces(*SM::g_service_manager);
+    IR::InstallInterfaces(*SM::g_service_manager);
     MVD::Init();
     NDM::Init();
-    NEWS::InstallInterfaces(*sm);
-    NFC::InstallInterfaces(*sm);
-    NIM::InstallInterfaces(*sm);
+    NEWS::InstallInterfaces(*SM::g_service_manager);
+    NFC::InstallInterfaces(*SM::g_service_manager);
+    NIM::InstallInterfaces(*SM::g_service_manager);
     NWM::Init();
-    PTM::InstallInterfaces(*sm);
+    PTM::InstallInterfaces(*SM::g_service_manager);
     QTM::Init();
 
     AddService(new CSND::CSND_SND);
@@ -265,19 +265,29 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm) {
     AddService(new PM::PM_APP);
     AddService(new SOC::SOC_U);
     AddService(new SSL::SSL_C);
-    Y2R::InstallInterfaces(*sm);
+    Y2R::InstallInterfaces(*SM::g_service_manager);
 
     LOG_DEBUG(Service, "initialized OK");
 }
 
+void Pause() {
+    SM::g_service_manager->PauseServices();
+}
+
+void Resume() {
+    SM::g_service_manager->ResumeServices();
+}
+
 /// Shutdown ServiceManager
 void Shutdown() {
+    SM::g_service_manager->StopServices();
     NDM::Shutdown();
     DLP::Shutdown();
     CECD::Shutdown();
     BOSS::Shutdown();
     FS::ArchiveShutdown();
 
+    SM::g_service_manager = nullptr;
     g_kernel_named_ports.clear();
     LOG_DEBUG(Service, "shutdown OK");
 }

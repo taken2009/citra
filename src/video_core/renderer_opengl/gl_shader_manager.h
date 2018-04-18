@@ -81,10 +81,9 @@ static_assert(
 static_assert(sizeof(GSUniformData) < 16384,
               "GSUniformData structure must be less than 16kb as per the OpenGL spec");
 
-/// A class that manage different shader stages and configures them with given config data.
 class ShaderProgramManager {
 public:
-    explicit ShaderProgramManager(bool separable);
+    ShaderProgramManager(bool separable);
     ~ShaderProgramManager();
 
     void UseProgrammableVertexShader(const GLShader::PicaVSConfig& config,

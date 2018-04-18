@@ -8,6 +8,8 @@
 #include <regex>
 #include <string>
 #include <thread>
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
 #include <glad/glad.h>
 
 #ifdef _MSC_VER
@@ -58,7 +60,7 @@ int main(int argc, char** argv) {
     char* endarg;
 
     // This is just to be able to link against core
-    gladLoadGL();
+    gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress));
 
     std::string room_name;
     std::string password;

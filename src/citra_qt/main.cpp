@@ -16,6 +16,10 @@
 #include <QtWidgets>
 #include "citra_qt/aboutdialog.h"
 #include "citra_qt/bootmanager.h"
+#ifdef ENABLE_OPENCV_CAMERA
+#include "citra_qt/camera/opencv_camera.h"
+#endif
+#include "citra_qt/camera/qt_multimedia_camera.h"
 #include "citra_qt/camera/still_image_camera.h"
 #include "citra_qt/cheat_gui.h"
 #include "citra_qt/compatdb.h"
@@ -138,6 +142,8 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     SetupUIStrings();
     SetupUIStringsT();
 
+    setWindowTitle(QString("Citra %1| %2-%3")
+                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
     show();
 
     game_list->LoadCompatibilityList();
@@ -175,8 +181,7 @@ void GMainWindow::InitializeWidgets() {
     game_list = new GameList(this);
     ui.horizontalLayout->addWidget(game_list);
 
-    multiplayer_state = new MultiplayerState(this, game_list->GetModel(), ui.action_Leave_Room,
-                                             ui.action_Show_Room);
+    multiplayer_state = new MultiplayerState(this, game_list->GetModel());
     multiplayer_state->setVisible(false);
 
     // Setup updater
@@ -308,8 +313,8 @@ void GMainWindow::InitializeRecentFileMenuActions() {
 void GMainWindow::InitializeHotkeys() {
     RegisterHotkey("Main Window", "Load File", QKeySequence::Open);
     RegisterHotkey("Main Window", "Start Emulation");
-    RegisterHotkey("Main Window", "Swap Screens", QKeySequence("F9"));
-    RegisterHotkey("Main Window", "Toggle Screen Layout", QKeySequence("F10"));
+    RegisterHotkey("Main Window", "Swap Screens", QKeySequence(tr("F9")));
+    RegisterHotkey("Main Window", "Toggle Screen Layout", QKeySequence(tr("F10")));
     RegisterHotkey("Main Window", "Toggle Frame Limit", QKeySequence(tr("CTRL+Z")));
     RegisterHotkey("Main Window", "Fullscreen", QKeySequence::FullScreen);
     RegisterHotkey("Main Window", "Exit Fullscreen", QKeySequence(Qt::Key_Escape),
@@ -468,11 +473,11 @@ void GMainWindow::ConnectMenuEvents() {
             &MultiplayerState::OnViewLobby);
     connect(ui.action_Start_Room, &QAction::triggered, multiplayer_state,
             &MultiplayerState::OnCreateRoom);
-    connect(ui.action_Leave_Room, &QAction::triggered, multiplayer_state,
+    connect(ui.action_Stop_Room, &QAction::triggered, multiplayer_state,
             &MultiplayerState::OnCloseRoom);
     connect(ui.action_Connect_To_Room, &QAction::triggered, multiplayer_state,
             &MultiplayerState::OnDirectConnectToRoom);
-    connect(ui.action_Show_Room, &QAction::triggered, multiplayer_state,
+    connect(ui.action_Chat, &QAction::triggered, multiplayer_state,
             &MultiplayerState::OnOpenNetworkRoom);
 
     ui.action_Fullscreen->setShortcut(GetHotkey("Main Window", "Fullscreen", this)->key());
@@ -992,6 +997,7 @@ void GMainWindow::OnMenuRecentFile() {
 }
 
 void GMainWindow::OnStartGame() {
+    Service::Resume();
     emu_thread->SetRunning(true);
     qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
     qRegisterMetaType<std::string>("std::string");
@@ -1017,7 +1023,7 @@ void GMainWindow::OnStartGame() {
 
 void GMainWindow::OnPauseGame() {
     emu_thread->SetRunning(false);
-
+    Service::Pause();
     ui.action_Start->setEnabled(true);
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(true);
@@ -1506,6 +1512,22 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Swap_Screens->setChecked(Settings::values.swap_screen);
 }
 
+void GMainWindow::ChangeRoomState() {
+    if (auto room = Network::GetRoom().lock()) {
+        if (room->GetState() == Network::Room::State::Open) {
+            ui.action_Start_Room->setDisabled(true);
+            ui.action_Stop_Room->setEnabled(true);
+            ui.action_Toolbar_Start_Room->setDisabled(true);
+            ui.action_Toolbar_Stop_Room->setEnabled(true);
+            return;
+        }
+        ui.action_Start_Room->setEnabled(true);
+        ui.action_Stop_Room->setDisabled(true);
+        ui.action_Toolbar_Start_Room->setEnabled(true);
+        ui.action_Toolbar_Stop_Room->setDisabled(true);
+    }
+}
+
 void GMainWindow::OnLoadTranslationT() {
     QString filename = QFileDialog::getOpenFileName(this, tr("Load Translation File"), QString(),
                                                     tr("Translation file (*.qm);;All files (*.*)"));
@@ -1576,7 +1598,13 @@ int main(int argc, char* argv[]) {
     // After settings have been loaded by GMainWindow, apply the filter
     log_filter.ParseFilterString(Settings::values.log_filter);
 
+    // Register CameraFactory
     Camera::RegisterFactory("image", std::make_unique<Camera::StillImageCameraFactory>());
+#ifdef ENABLE_OPENCV_CAMERA
+    Camera::RegisterFactory("opencv", std::make_unique<Camera::OpenCVCameraFactory>());
+#endif
+    Camera::RegisterFactory("qt", std::make_unique<Camera::QtMultimediaCameraFactory>());
+    Camera::QtMultimediaCameraHandler::Init();
 
     main_window.show();
     return app.exec();

@@ -236,7 +236,7 @@ void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color
 void RendererOpenGL::InitOpenGLObjects() {
 
     // Link shaders and get variable locations
-    shader.Create(vertex_shader, fragment_shader);
+    shader.CreateFromSource(vertex_shader, nullptr, fragment_shader);
     state.draw.shader_program = shader.handle;
     state.Apply();
     uniform_modelview_matrix = glGetUniformLocation(shader.handle, "modelview_matrix");

@@ -25,15 +25,35 @@ matrix:
       install: "./.travis/linux/deps.sh"
       script: "./.travis/linux/build.sh"
       after_success: "./.travis/linux/upload.sh"
-      cache: ccache
     - if: branch = master AND type = push
       os: linux
       env: NAME="transifex push"
       sudo: required
       dist: trusty
-      services: docker
+      addons:
+        apt:
+          packages:
+            - libsdl2-dev
+            - qtbase5-dev
+            - libqt5opengl5-dev
+            - qttools5-dev
+            - qttools5-dev-tools
+            - libgtk2.0-dev
+            - pkg-config
+            - libavcodec-dev
+            - libavformat-dev
+            - libswscale-dev
+            - python-dev
+            - python-numpy
+            - libtbb2
+            - libtbb-dev
+            - libjpeg-dev
+            - libpng-dev
+            - libtiff-dev
+            - libdc1394-22-dev
       install: "./.travis/transifex/deps.sh"
       script: "./.travis/transifex/build.sh"
+      after_success: "./.travis/transifex/upload.sh"
     - os: osx
       env: NAME="macos build"
       sudo: false
@@ -41,13 +61,11 @@ matrix:
       install: "./.travis/macos/deps.sh"
       script: "./.travis/macos/build.sh"
       after_success: "./.travis/macos/upload.sh"
-      cache: ccache
     - os: linux
-      env: NAME="linux build (frozen versions of dependencies)"
+      env: NAME="linux build (frozen versions of dependencies without opencv)"
       sudo: required
       dist: trusty
       services: docker
-      cache: ccache
       script: "./.travis/linux-frozen/build.sh"
 
 deploy:

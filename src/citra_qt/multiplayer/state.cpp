@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <QAction>
 #include <QIcon>
 #include <QMessageBox>
 #include <QStandardItemModel>
@@ -17,10 +16,8 @@
 #include "common/announce_multiplayer_room.h"
 #include "common/logging/log.h"
 
-MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model,
-                                   QAction* leave_room, QAction* show_room)
-    : QWidget(parent), game_list_model(game_list_model), leave_room(leave_room),
-      show_room(show_room) {
+MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model)
+    : QWidget(parent), game_list_model(game_list_model) {
     if (auto member = Network::GetRoomMember().lock()) {
         // register the network structs to use in slots and signals
         state_callback_handle = member->BindOnStateChanged(
@@ -70,26 +67,19 @@ void MultiplayerState::OnNetworkStateChanged(const Network::RoomMember::State& s
     if (state == Network::RoomMember::State::Joined) {
         status_icon->setPixmap(QIcon::fromTheme("connected").pixmap(16));
         status_text->setText(tr("Connected"));
-        leave_room->setEnabled(true);
-        show_room->setEnabled(true);
         return;
     }
     status_icon->setPixmap(QIcon::fromTheme("disconnected").pixmap(16));
     status_text->setText(tr("Not Connected"));
-    leave_room->setEnabled(false);
-    show_room->setEnabled(false);
 }
 
 void MultiplayerState::OnAnnounceFailed(const Common::WebResult& result) {
     announce_multiplayer_session->Stop();
-    QMessageBox::warning(
-        this, tr("Error"),
-        tr("Failed to announce the room to the public lobby. In order to host a room publicly, you "
-           "must have a valid Citra account configured in Emulation -> Configure -> Web. If you do "
-           "not want to publish a room in the public lobby, then select Unlisted instead.\n"
-           "Debug Message: ") +
-            QString::fromStdString(result.result_string),
-        QMessageBox::Ok);
+    QMessageBox::warning(this, tr("Error"),
+                         tr("Failed to announce the room to the public lobby.\nThe room will not "
+                            "get listed publicly.\nError: ") +
+                             QString::fromStdString(result.result_string),
+                         QMessageBox::Ok);
 }
 
 static void BringWidgetToFront(QWidget* widget) {
@@ -113,20 +103,14 @@ void MultiplayerState::OnCreateRoom() {
 }
 
 void MultiplayerState::OnCloseRoom() {
-    if (!NetworkMessage::WarnCloseRoom())
-        return;
     if (auto room = Network::GetRoom().lock()) {
-        // if you are in a room, leave it
-        if (auto member = Network::GetRoomMember().lock()) {
-            member->Leave();
-        }
-
-        // if you are hosting a room, also stop hosting
         if (room->GetState() != Network::Room::State::Open) {
             return;
         }
-        room->Destroy();
-        announce_multiplayer_session->Stop();
+        if (NetworkMessage::WarnCloseRoom()) {
+            room->Destroy();
+            announce_multiplayer_session->Stop();
+        }
     }
 }
 

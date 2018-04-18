@@ -16,12 +16,13 @@
 #include "citra_qt/multiplayer/message.h"
 #include "common/logging/log.h"
 #include "core/announce_multiplayer_session.h"
+#include "ui_chat_room.h"
 
 class ChatMessage {
 public:
     explicit ChatMessage(const Network::ChatEntry& chat, QTime ts = {}) {
         /// Convert the time to their default locale defined format
-        QLocale locale;
+        static QLocale locale;
         timestamp = locale.toString(ts.isValid() ? ts : QTime::currentTime(), QLocale::ShortFormat);
         nickname = QString::fromStdString(chat.nickname);
         message = QString::fromStdString(chat.message);
@@ -59,12 +60,12 @@ public:
     }
 
 private:
-    static constexpr const char system_color[] = "#888888";
+    const QString system_color = "#888888";
     QString timestamp;
     QString message;
 };
 
-ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::ChatRoom>()) {
+ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(new Ui::ChatRoom) {
     ui->setupUi(this);
 
     // set the item_model for player_view
@@ -147,7 +148,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
                                    return member.nickname == chat.nickname;
                                });
         if (it == members.end()) {
-            NGLOG_INFO(Network, "Chat message received from unknown player. Ignoring it.");
+            LOG_INFO(Network, "Chat message received from unknown player. Ignoring it.");
             return;
         }
         auto player = std::distance(members.begin(), it);
@@ -174,7 +175,7 @@ void ChatRoom::OnSendChat() {
                                    return member.nickname == chat.nickname;
                                });
         if (it == members.end()) {
-            NGLOG_INFO(Network, "Cannot find self in the player list when sending a message.");
+            LOG_INFO(Network, "Chat message received from unknown player");
         }
         auto player = std::distance(members.begin(), it);
         ChatMessage m(chat);

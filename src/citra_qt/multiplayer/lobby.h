@@ -13,7 +13,10 @@
 #include "common/announce_multiplayer_room.h"
 #include "core/announce_multiplayer_session.h"
 #include "network/network.h"
-#include "ui_lobby.h"
+
+namespace Ui {
+class Lobby;
+}
 
 class LobbyModel;
 class LobbyFilterProxyModel;
@@ -65,6 +68,8 @@ private slots:
      */
     void OnConnection();
 
+    void OnStateChanged(const Network::RoomMember::State&);
+
 signals:
     /**
      * Signalled when the latest lobby data is retrieved.
@@ -94,7 +99,7 @@ private:
      * Prompts for a password. Returns an empty QString if the user either did not provide a
      * password or if the user closed the window.
      */
-    QString PasswordPrompt();
+    const QString PasswordPrompt();
 
     QStandardItemModel* model;
     QStandardItemModel* game_list;
@@ -102,7 +107,7 @@ private:
 
     std::future<AnnounceMultiplayerRoom::RoomList> room_list_future;
     std::weak_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
-    std::unique_ptr<Ui::Lobby> ui;
+    Ui::Lobby* ui;
     QFutureWatcher<void>* watcher;
 };
 

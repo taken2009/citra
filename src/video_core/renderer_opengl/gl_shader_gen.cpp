@@ -67,12 +67,10 @@ static std::string GetVertexInterfaceDeclaration(bool is_output, bool separable_
     std::string out;
 
     auto append_variable = [&](const char* var, int location) {
-        if (separable_shader) {
-            out += "layout (location=" + std::to_string(location) + ") ";
-        }
-        out += std::string(is_output ? "out " : "in ") + var + ";\n";
+        out += (separable_shader ? "layout (location=" + std::to_string(location) + ") "
+                                 : std::string{}) +
+               (is_output ? "out " : "in ") + var + ";\n";
     };
-
     append_variable("vec4 primary_color", ATTRIBUTE_COLOR);
     append_variable("vec2 texcoord0", ATTRIBUTE_TEXCOORD0);
     append_variable("vec2 texcoord1", ATTRIBUTE_TEXCOORD1);
@@ -82,7 +80,6 @@ static std::string GetVertexInterfaceDeclaration(bool is_output, bool separable_
     append_variable("vec3 view", ATTRIBUTE_VIEW);
 
     if (is_output && separable_shader) {
-        // gl_PerVertex redeclaration is required for separate shader object
         out += R"(
 out gl_PerVertex {
     vec4 gl_Position;
@@ -302,13 +299,13 @@ static std::string SampleTexture(const PicaShaderConfig& config, unsigned textur
             return "texture(tex0, texcoord0)";
         case TexturingRegs::TextureConfig::Projection2D:
             return "textureProj(tex0, vec3(texcoord0, texcoord0_w))";
-        case TexturingRegs::TextureConfig::TextureCube:
-            return "texture(tex_cube, vec3(texcoord0, texcoord0_w))";
         case TexturingRegs::TextureConfig::Shadow2D:
         case TexturingRegs::TextureConfig::ShadowCube:
-            NGLOG_CRITICAL(HW_GPU, "Unhandled shadow texture");
+            LOG_CRITICAL(HW_GPU, "Unhandled shadow texture");
             UNIMPLEMENTED();
             return "vec4(1.0)"; // stubbed to avoid rendering with wrong shadow
+        case TexturingRegs::TextureConfig::TextureCube:
+            return "texture(tex_cube, vec3(texcoord0, texcoord0_w))";
         default:
             LOG_CRITICAL(HW_GPU, "Unhandled texture type %x",
                          static_cast<int>(state.texture0_type));
@@ -616,10 +613,9 @@ static void WriteTevStage(std::string& out, const PicaShaderConfig& config, unsi
         AppendColorModifier(out, config, stage.color_modifier3, stage.color_source3, index_name);
         out += ");\n";
 
-        // Round the output of each TEV stage to maintain the PICA's 8 bits of precision
-        out += "vec3 color_output_" + index_name + " = byteround(";
+        out += "vec3 color_output_" + index_name + " = ";
         AppendColorCombiner(out, stage.color_op, "color_results_" + index_name);
-        out += ");\n";
+        out += ";\n";
 
         if (stage.color_op == TevStageConfig::Operation::Dot3_RGBA) {
             // result of Dot3_RGBA operation is also placed to the alpha component
@@ -636,9 +632,9 @@ static void WriteTevStage(std::string& out, const PicaShaderConfig& config, unsi
                                 index_name);
             out += ");\n";
 
-            out += "float alpha_output_" + index_name + " = byteround(";
+            out += "float alpha_output_" + index_name + " = ";
             AppendAlphaCombiner(out, stage.alpha_op, "alpha_results_" + index_name);
-            out += ");\n";
+            out += ";\n";
         }
 
         out += "last_tex_env_out = vec4("
@@ -1116,7 +1112,7 @@ float ProcTexNoiseCoef(vec2 x) {
     if (config.state.proctex.coord < 3) {
         out += "vec2 uv = abs(texcoord" + std::to_string(config.state.proctex.coord) + ");\n";
     } else {
-        NGLOG_CRITICAL(Render_OpenGL, "Unexpected proctex.coord >= 3");
+        LOG_CRITICAL(Render_OpenGL, "proctex.coord == 3");
         out += "vec2 uv = abs(texcoord0);\n";
     }
 
@@ -1188,7 +1184,7 @@ std::string GenerateFragmentShader(const PicaShaderConfig& config, bool separabl
 
     std::string out = "#version 330 core\n";
     if (separable_shader) {
-        out += "#extension GL_ARB_separate_shader_objects : enable\n";
+        out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
     }
 
     out += GetVertexInterfaceDeclaration(false, separable_shader);
@@ -1237,22 +1233,6 @@ float LookupLightingLUTSigned(int lut_index, float pos) {
     return LookupLightingLUT(lut_index, index, delta);
 }
 
-float byteround(float x) {
-    return round(x * 255.0) * (1.0 / 255.0);
-}
-
-vec2 byteround(vec2 x) {
-    return round(x * 255.0) * (1.0 / 255.0);
-}
-
-vec3 byteround(vec3 x) {
-    return round(x * 255.0) * (1.0 / 255.0);
-}
-
-vec4 byteround(vec4 x) {
-    return round(x * 255.0) * (1.0 / 255.0);
-}
-
 )";
 
     if (config.state.proctex.enable)
@@ -1262,7 +1242,7 @@ vec4 byteround(vec4 x) {
     // This maintains the PICA's 8 bits of precision
     out += R"(
 void main() {
-vec4 rounded_primary_color = byteround(primary_color);
+vec4 rounded_primary_color = round(primary_color * 255.0) / 255.0;
 vec4 primary_fragment_color = vec4(0.0);
 vec4 secondary_fragment_color = vec4(0.0);
 )";
@@ -1337,18 +1317,17 @@ vec4 secondary_fragment_color = vec4(0.0);
     }
 
     out += "gl_FragDepth = depth;\n";
-    // Round the final fragment color to maintain the PICA's 8 bits of precision
-    out += "color = byteround(last_tex_env_out);\n";
+    out += "color = last_tex_env_out;\n";
 
     out += "}";
 
     return out;
 }
 
-std::string GenerateTrivialVertexShader(bool separable_shader) {
+std::string GenerateDefaultVertexShader(bool separable_shader) {
     std::string out = "#version 330 core\n";
     if (separable_shader) {
-        out += "#extension GL_ARB_separate_shader_objects : enable\n";
+        out += "#extension GL_ARB_separate_shader_objects : enable\n\n";
     }
 
     out += GetVertexInterfaceDeclaration(true, separable_shader);

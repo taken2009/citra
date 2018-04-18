@@ -17,11 +17,12 @@
 #include "common/logging/log.h"
 #include "core/settings.h"
 #include "network/network.h"
+#include "ui_lobby.h"
 
 Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
              std::shared_ptr<Core::AnnounceMultiplayerSession> session)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::Lobby>()), announce_multiplayer_session(session), game_list(list) {
+      ui(new Ui::Lobby), announce_multiplayer_session(session), game_list(list) {
     ui->setupUi(this);
 
     // setup the watcher for background connections
@@ -31,7 +32,6 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     model = new QStandardItemModel(ui->room_list);
     proxy = new LobbyFilterProxyModel(this, game_list);
     proxy->setSourceModel(model);
-    proxy->setDynamicSortFilter(true);
     proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
     proxy->setSortLocaleAware(true);
     ui->room_list->setModel(proxy);
@@ -45,14 +45,16 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     ui->room_list->setSortingEnabled(true);
     ui->room_list->setEditTriggers(QHeaderView::NoEditTriggers);
     ui->room_list->setExpandsOnDoubleClick(false);
+    // ui->room_list->setUniformRowHeights(true);
     ui->room_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    ui->nickname->setValidator(Validation::get().nickname);
+    ui->nickname->setValidator(Validation::nickname);
     ui->nickname->setText(UISettings::values.nickname);
 
     // UI Buttons
     MultiplayerState* p = reinterpret_cast<MultiplayerState*>(parent);
     connect(ui->refresh_list, &QPushButton::pressed, this, &Lobby::RefreshLobby);
+    connect(ui->chat, &QPushButton::pressed, p, &MultiplayerState::OnOpenNetworkRoom);
     connect(ui->games_owned, &QCheckBox::stateChanged, proxy,
             &LobbyFilterProxyModel::SetFilterOwned);
     connect(ui->hide_full, &QCheckBox::stateChanged, proxy, &LobbyFilterProxyModel::SetFilterFull);
@@ -66,14 +68,31 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     // TODO(jroweboy): change this slot to OnConnected?
     connect(this, &Lobby::Connected, p, &MultiplayerState::OnOpenNetworkRoom);
 
+    // setup the callbacks for network updates
+    if (auto member = Network::GetRoomMember().lock()) {
+        member->BindOnStateChanged(
+            [this](const Network::RoomMember::State& state) { emit StateChanged(state); });
+        connect(this, &Lobby::StateChanged, this, &Lobby::OnStateChanged);
+    } else {
+        // TODO (jroweboy) network was not initialized?
+    }
+
     // manually start a refresh when the window is opening
     // TODO(jroweboy): if this refresh is slow for people with bad internet, then don't do it as
     // part of the constructor, but offload the refresh until after the window shown. perhaps emit a
     // refreshroomlist signal from places that open the lobby
     RefreshLobby();
+
+    if (auto member = Network::GetRoomMember().lock()) {
+        if (member->IsConnected()) {
+            ui->chat->setEnabled(true);
+            return;
+        }
+    }
+    ui->chat->setDisabled(true);
 }
 
-QString Lobby::PasswordPrompt() {
+const QString Lobby::PasswordPrompt() {
     bool ok;
     const QString text =
         QInputDialog::getText(this, tr("Password Required to Join"), tr("Password:"),
@@ -127,6 +146,16 @@ void Lobby::OnJoinRoom(const QModelIndex& index) {
     UISettings::values.ip = proxy->data(connection_index, LobbyItemHost::HostIPRole).toString();
     UISettings::values.port = proxy->data(connection_index, LobbyItemHost::HostPortRole).toString();
     Settings::Apply();
+}
+
+void Lobby::OnStateChanged(const Network::RoomMember::State& state) {
+    if (auto member = Network::GetRoomMember().lock()) {
+        if (member->IsConnected()) {
+            ui->chat->setEnabled(true);
+            return;
+        }
+    }
+    ui->chat->setDisabled(true);
 }
 
 void Lobby::ResetModel() {
@@ -189,7 +218,7 @@ void Lobby::OnRefreshLobby() {
             first_item->appendRow(new LobbyItemExpandedMemberList(members));
         }
     }
-    proxy->setSourceModel(model);
+    ui->room_list->setModel(model);
 
     // Reenable the refresh button and resize the columns
     ui->refresh_list->setEnabled(true);
@@ -282,12 +311,12 @@ void LobbyFilterProxyModel::sort(int column, Qt::SortOrder order) {
 
 void LobbyFilterProxyModel::SetFilterOwned(bool filter) {
     filter_owned = filter;
-    invalidate();
+    invalidateFilter();
 }
 
 void LobbyFilterProxyModel::SetFilterFull(bool filter) {
     filter_full = filter;
-    invalidate();
+    invalidateFilter();
 }
 
 void Lobby::OnConnection() {

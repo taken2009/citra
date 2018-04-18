@@ -17,6 +17,11 @@ option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 CMAKE_DEPENDENT_OPTION(CITRA_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
+option(ENABLE_OPENCV "Enable the OpenCV camera implementation" OFF)
+
+if (NOT ENABLE_QT)
+    set(ENABLE_OPENCV OFF)
+endif()
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit)
     message(STATUS "Copying pre-commit hook")
@@ -40,20 +45,15 @@ function(check_submodules_present)
 endfunction()
 check_submodules_present()
 
-
 configure_file(${CMAKE_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
                ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
                COPYONLY)
 
-if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
+if (NOT EXISTS ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
     message(STATUS "Downloading compatibility list for citra...")
     file(DOWNLOAD
-        https://api.citra-emu.org/gamedb/titleid/
+        https://citra-emu.org/game/index.json
         "${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    file(WRITE ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
 endif()
 
 # Detect current compilation architecture and create standard definitions
@@ -187,6 +187,15 @@ if (NOT Boost_FOUND)
     find_package(Boost QUIET REQUIRED)
 endif()
 
+if (ENABLE_OPENCV)
+    find_package(OpenCV COMPONENTS core videoio imgproc)
+    if (NOT OpenCV_FOUND)
+        message(WARNING "OpenCV not found, disabling OpenCVCamera")
+
+        set(ENABLE_OPENCV OFF)
+    endif()
+endif()
+
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -225,7 +234,7 @@ endif()
 if (ENABLE_QT)
     if (CITRA_USE_BUNDLED_QT)
         if (MSVC14 AND ARCHITECTURE_x86_64)
-            set(QT_VER qt-5.7-msvc2015_64)
+            set(QT_VER qt-5.10.0-msvc2017_64)
         else()
             message(FATAL_ERROR "No bundled Qt binaries for your toolchain. Disable CITRA_USE_BUNDLED_QT and provide your own.")
         endif()
@@ -241,7 +250,7 @@ if (ENABLE_QT)
         set(QT_PREFIX_HINT)
     endif()
 
-    find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
+    find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL Multimedia ${QT_PREFIX_HINT})
 
     if (ENABLE_QT_TRANSLATION)
         find_package(Qt5 REQUIRED COMPONENTS LinguistTools ${QT_PREFIX_HINT})

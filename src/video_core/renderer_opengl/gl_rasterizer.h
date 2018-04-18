@@ -237,15 +237,15 @@ private:
         bool dirty;
     } uniform_block_data = {};
 
+    // OGLPipeline pipeline;
     std::unique_ptr<ShaderProgramManager> shader_program_manager;
-
     OGLVertexArray sw_vao;
     OGLVertexArray hw_vao;
     std::array<bool, 16> hw_vao_enabled_attributes;
 
     std::array<SamplerInfo, 3> texture_samplers;
-    static constexpr size_t VERTEX_BUFFER_SIZE = 32 * 1024 * 1024;
-    OGLStreamBuffer vertex_buffer;
+    static constexpr size_t VERTEX_BUFFER_SIZE = 128 * 1024 * 1024;
+    std::unique_ptr<OGLStreamBuffer> vertex_buffer;
     GLsizeiptr vertex_buffer_size;
     OGLBuffer uniform_buffer;
     OGLFramebuffer framebuffer;
@@ -282,6 +282,9 @@ private:
     OGLTexture proctex_diff_lut;
     std::array<GLvec4, 256> proctex_diff_lut_data{};
 
+    static constexpr size_t STREAM_BUFFER_SIZE = 4 * 1024 * 1024;
+    std::unique_ptr<OGLStreamBuffer> stream_buffer;
+
     GLint vs_input_index_min = 0;
     GLint vs_input_index_max = 0;
     GLsizeiptr vs_input_size = 0;
@@ -291,11 +294,11 @@ private:
 
     OGLBuffer vs_uniform_buffer;
 
-    void SetupVertexShader(VSUniformData* ub_ptr);
+    void SetupVertexShader(VSUniformData* ub_ptr, GLintptr buffer_offset);
 
     OGLBuffer gs_uniform_buffer;
 
-    void SetupGeometryShader(GSUniformData* ub_ptr);
+    void SetupGeometryShader(GSUniformData* ub_ptr, GLintptr buffer_offset);
 
     enum class AccelDraw { Disabled, Arrays, Indexed };
     AccelDraw accelerate_draw;

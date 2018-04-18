@@ -191,6 +191,30 @@ Module::Interface::Interface(std::shared_ptr<Module> cam, const char* name, u32 
 
 Module::Interface::~Interface() = default;
 
+void Module::Interface::PauseService() {
+    for (CameraConfig& camera : cam->cameras) {
+        if (camera.impl) {
+            camera.impl->OnServicePaused();
+        }
+    }
+}
+
+void Module::Interface::ResumeService() {
+    for (CameraConfig& camera : cam->cameras) {
+        if (camera.impl) {
+            camera.impl->OnServiceResumed();
+        }
+    }
+}
+
+void Module::Interface::StopService() {
+    for (CameraConfig& camera : cam->cameras) {
+        if (camera.impl) {
+            camera.impl->OnServiceStopped();
+        }
+    }
+}
+
 void Module::Interface::StartCapture(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x01, 1, 0);
     const PortSet port_select(rp.Pop<u8>());
@@ -771,7 +795,7 @@ void Module::Interface::SetFrameRate(Kernel::HLERequestContext& ctx) {
     if (camera_select.IsValid()) {
         for (int camera : camera_select) {
             cam->cameras[camera].frame_rate = frame_rate;
-            // TODO(wwylele): consider hinting the actual camera with the expected frame rate
+            cam->cameras[camera].impl->SetFrameRate(frame_rate);
         }
         rb.Push(RESULT_SUCCESS);
     } else {

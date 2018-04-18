@@ -7,7 +7,10 @@
 #include <memory>
 #include <QDialog>
 #include <QFutureWatcher>
-#include "ui_direct_connect.h"
+
+namespace Ui {
+class DirectConnect;
+}
 
 class DirectConnectWindow : public QDialog {
     Q_OBJECT
@@ -31,5 +34,5 @@ private:
     void EndConnecting();
 
     QFutureWatcher<void>* watcher;
-    std::unique_ptr<Ui::DirectConnect> ui;
+    Ui::DirectConnect* ui;
 };

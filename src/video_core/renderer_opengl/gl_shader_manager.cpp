@@ -10,14 +10,14 @@
 static void SetShaderUniformBlockBinding(GLuint shader, const char* name, UniformBindings binding,
                                          size_t expected_size) {
     GLuint ub_index = glGetUniformBlockIndex(shader, name);
-    if (ub_index == GL_INVALID_INDEX) {
-        return;
+    if (ub_index != GL_INVALID_INDEX) {
+        GLint ub_size = 0;
+        glGetActiveUniformBlockiv(shader, ub_index, GL_UNIFORM_BLOCK_DATA_SIZE, &ub_size);
+        ASSERT_MSG(ub_size == expected_size,
+                   "Uniform block size did not match! Got %d, expected %zu",
+                   static_cast<int>(ub_size), expected_size);
+        glUniformBlockBinding(shader, ub_index, static_cast<GLuint>(binding));
     }
-    GLint ub_size = 0;
-    glGetActiveUniformBlockiv(shader, ub_index, GL_UNIFORM_BLOCK_DATA_SIZE, &ub_size);
-    ASSERT_MSG(ub_size == expected_size, "Uniform block size did not match! Got %d, expected %zu",
-               static_cast<int>(ub_size), expected_size);
-    glUniformBlockBinding(shader, ub_index, static_cast<GLuint>(binding));
 }
 
 static void SetShaderUniformBlockBindings(GLuint shader) {
@@ -73,20 +73,15 @@ void PicaUniformsData::SetFromRegs(const Pica::ShaderRegs& regs,
     std::memcpy(&f[0], &setup.uniforms.f[0], sizeof(f));
 }
 
-/**
- * An object representing a shader program staging. It can be either a shader object or a program
- * object, depending on whether separable program is used.
- */
 class OGLShaderStage {
 public:
-    explicit OGLShaderStage(bool separable) {
+    OGLShaderStage(bool separable) {
         if (separable) {
             shader_or_program = OGLProgram();
         } else {
             shader_or_program = OGLShader();
         }
     }
-
     void Create(const char* source, GLenum type) {
         if (shader_or_program.which() == 0) {
             boost::get<OGLShader>(shader_or_program).Create(source, type);
@@ -99,7 +94,6 @@ public:
             SetShaderSamplerBindings(program.handle);
         }
     }
-
     GLuint GetHandle() const {
         if (shader_or_program.which() == 0) {
             return boost::get<OGLShader>(shader_or_program).handle;
@@ -112,12 +106,12 @@ private:
     boost::variant<OGLShader, OGLProgram> shader_or_program;
 };
 
-class TrivialVertexShader {
+class DefaultVertexShader {
 public:
-    explicit TrivialVertexShader(bool separable) : program(separable) {
-        program.Create(GLShader::GenerateTrivialVertexShader(separable).c_str(), GL_VERTEX_SHADER);
+    DefaultVertexShader(bool separable) : program(separable) {
+        program.Create(GLShader::GenerateDefaultVertexShader(separable).c_str(), GL_VERTEX_SHADER);
     }
-    GLuint Get() const {
+    GLuint Get() {
         return program.GetHandle();
     }
 
@@ -129,7 +123,7 @@ template <typename KeyConfigType, std::string (*CodeGenerator)(const KeyConfigTy
           GLenum ShaderType>
 class ShaderCache {
 public:
-    explicit ShaderCache(bool separable) : separable(separable) {}
+    ShaderCache(bool separable) : separable(separable) {}
     GLuint Get(const KeyConfigType& config) {
         auto [iter, new_shader] = shaders.emplace(config, OGLShaderStage{separable});
         OGLShaderStage& cached_shader = iter->second;
@@ -194,27 +188,19 @@ using FragmentShaders =
 
 class ShaderProgramManager::Impl {
 public:
-    explicit Impl(bool separable)
+    Impl(bool separable)
         : separable(separable), programmable_vertex_shaders(separable),
-          trivial_vertex_shader(separable), programmable_geometry_shaders(separable),
+          default_vertex_shader(separable), programmable_geometry_shaders(separable),
           fixed_geometry_shaders(separable), fragment_shaders(separable) {
         if (separable)
             pipeline.Create();
     }
 
     struct ShaderTuple {
-        GLuint vs = 0;
-        GLuint gs = 0;
-        GLuint fs = 0;
-
+        GLuint vs = 0, gs = 0, fs = 0;
         bool operator==(const ShaderTuple& rhs) const {
             return std::tie(vs, gs, fs) == std::tie(rhs.vs, rhs.gs, rhs.fs);
         }
-
-        bool operator!=(const ShaderTuple& rhs) const {
-            return std::tie(vs, gs, fs) != std::tie(rhs.vs, rhs.gs, rhs.fs);
-        }
-
         struct Hash {
             std::size_t operator()(const ShaderTuple& tuple) const {
                 std::size_t hash = 0;
@@ -229,7 +215,7 @@ public:
     ShaderTuple current;
 
     ProgrammableVertexShaders programmable_vertex_shaders;
-    TrivialVertexShader trivial_vertex_shader;
+    DefaultVertexShader default_vertex_shader;
 
     ProgrammableGeometryShaders programmable_geometry_shaders;
     FixedGeometryShaders fixed_geometry_shaders;
@@ -252,7 +238,7 @@ void ShaderProgramManager::UseProgrammableVertexShader(const GLShader::PicaVSCon
 }
 
 void ShaderProgramManager::UseTrivialVertexShader() {
-    impl->current.vs = impl->trivial_vertex_shader.Get();
+    impl->current.vs = impl->default_vertex_shader.Get();
 }
 
 void ShaderProgramManager::UseProgrammableGeometryShader(const GLShader::PicaGSConfig& config,
@@ -274,8 +260,7 @@ void ShaderProgramManager::UseFragmentShader(const GLShader::PicaShaderConfig& c
 
 void ShaderProgramManager::ApplyTo(OpenGLState& state) {
     if (impl->separable) {
-        // Without this reseting, AMD sometimes freezes when one stage is changed but not for the
-        // others
+        // Workaround for AMD bug
         glUseProgramStages(impl->pipeline.handle,
                            GL_VERTEX_SHADER_BIT | GL_GEOMETRY_SHADER_BIT | GL_FRAGMENT_SHADER_BIT,
                            0);

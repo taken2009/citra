@@ -5,7 +5,10 @@
 #pragma once
 
 #include "citra_qt/multiplayer/chat_room.h"
-#include "ui_client_room.h"
+
+namespace Ui {
+class ClientRoom;
+}
 
 class ClientRoomWindow : public QDialog {
     Q_OBJECT
@@ -31,5 +34,5 @@ private:
     void UpdateView();
 
     QStandardItemModel* player_list;
-    std::unique_ptr<Ui::ClientRoom> ui;
+    Ui::ClientRoom* ui;
 };

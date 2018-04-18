@@ -12,6 +12,7 @@
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
+#include "network/network.h"
 #include "ui_main.h"
 
 class AboutDialog;
@@ -55,11 +56,11 @@ class GMainWindow : public QMainWindow {
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
-
-    GMainWindow();
-    ~GMainWindow();
+    void ChangeRoomState();
 
     GameList* game_list;
+    GMainWindow();
+    ~GMainWindow();
 
 signals:
 
@@ -194,6 +195,8 @@ private:
     Ui::MainWindow ui;
 
     GRenderWindow* render_window;
+
+    QFutureWatcher<Service::AM::InstallStatus>* watcher = nullptr;
 
     // Status bar elements
     QProgressBar* progress_bar = nullptr;

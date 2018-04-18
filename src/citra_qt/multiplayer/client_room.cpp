@@ -15,10 +15,11 @@
 #include "citra_qt/multiplayer/message.h"
 #include "common/logging/log.h"
 #include "core/announce_multiplayer_session.h"
+#include "ui_client_room.h"
 
 ClientRoomWindow::ClientRoomWindow(QWidget* parent)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::ClientRoom>()) {
+      ui(new Ui::ClientRoom) {
     ui->setupUi(this);
 
     // setup the callbacks for network updates
@@ -48,39 +49,39 @@ void ClientRoomWindow::OnRoomUpdate(const Network::RoomInformation& info) {
 void ClientRoomWindow::OnStateChange(const Network::RoomMember::State& state) {
     switch (state) {
     case Network::RoomMember::State::Idle:
-        NGLOG_INFO(Network, "State: Idle");
+        LOG_INFO(Network, "State: Idle");
         break;
     case Network::RoomMember::State::Joining:
-        NGLOG_INFO(Network, "State: Joining");
+        LOG_INFO(Network, "State: Joining");
         break;
     case Network::RoomMember::State::Joined:
-        NGLOG_INFO(Network, "State: Joined");
+        LOG_INFO(Network, "State: Joined");
         ui->chat->Clear();
         ui->chat->AppendStatusMessage(tr("Connected"));
         break;
     case Network::RoomMember::State::LostConnection:
         NetworkMessage::ShowError(NetworkMessage::LOST_CONNECTION);
-        NGLOG_INFO(Network, "State: LostConnection");
+        LOG_INFO(Network, "State: LostConnection");
         break;
     case Network::RoomMember::State::CouldNotConnect:
         NetworkMessage::ShowError(NetworkMessage::UNABLE_TO_CONNECT);
-        NGLOG_INFO(Network, "State: CouldNotConnect");
+        LOG_INFO(Network, "State: CouldNotConnect");
         break;
     case Network::RoomMember::State::NameCollision:
         NetworkMessage::ShowError(NetworkMessage::USERNAME_IN_USE);
-        NGLOG_INFO(Network, "State: NameCollision");
+        LOG_INFO(Network, "State: NameCollision");
         break;
     case Network::RoomMember::State::MacCollision:
         NetworkMessage::ShowError(NetworkMessage::MAC_COLLISION);
-        NGLOG_INFO(Network, "State: MacCollision");
+        LOG_INFO(Network, "State: MacCollision");
         break;
     case Network::RoomMember::State::WrongPassword:
         NetworkMessage::ShowError(NetworkMessage::WRONG_PASSWORD);
-        NGLOG_INFO(Network, "State: WrongPassword");
+        LOG_INFO(Network, "State: WrongPassword");
         break;
     case Network::RoomMember::State::WrongVersion:
         NetworkMessage::ShowError(NetworkMessage::WRONG_VERSION);
-        NGLOG_INFO(Network, "State: WrongVersion");
+        LOG_INFO(Network, "State: WrongVersion");
         break;
     default:
         break;

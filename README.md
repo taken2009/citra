@@ -2,13 +2,16 @@
 
 Scroll down for the original README.md!
 
-Base revision: 048b0fc0d3f42468b194cf5ba74d447fed18ed0f
+Base revision: bdf7b46fbbe8fce801e8ea02cadb510002523eda
 
 |Pull Request|Commit|Title|Author|Merged?|
 |----|----|----|----|----|
 |[5](https://github.com/citra-emu/citra-canary/pull/5)|fd2238b|Canary Base|[chris062689](https://github.com/chris062689)|Yes|
-|[3499](https://github.com/citra-emu/citra/pull/3499)|1405426|Convert PICA Shaders to GLSL|[jroweboy](https://github.com/jroweboy)|Yes|
-|[3073](https://github.com/citra-emu/citra/pull/3073)|d07855a|Citra-qt: Add multiplayer ui|[jroweboy](https://github.com/jroweboy)|Yes|
+|[3639](https://github.com/citra-emu/citra/pull/3639)|7e7de7d|gl_rasterizer_cache: exit FillTextureCube when address is invalid|[wwylele](https://github.com/wwylele)|Yes|
+|[3611](https://github.com/citra-emu/citra/pull/3611)|2a7d0ec|citra-qt: Fix the stuck in fullscreen bug.|[adityaruplaha](https://github.com/adityaruplaha)|Yes|
+|[3566](https://github.com/citra-emu/citra/pull/3566)|e1dd792|citra_qt: camera integration|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[3499](https://github.com/citra-emu/citra/pull/3499)|8702bbe|Convert PICA Shaders to GLSL|[jroweboy](https://github.com/jroweboy)|Yes|
+|[3073](https://github.com/citra-emu/citra/pull/3073)|5548650|Citra-qt: Add multiplayer ui|[jroweboy](https://github.com/jroweboy)|Yes|
 
 
 End of merge log. You can find the original README.md below the break.

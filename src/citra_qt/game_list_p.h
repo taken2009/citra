@@ -7,7 +7,6 @@
 #include <atomic>
 #include <map>
 #include <unordered_map>
-#include <QCoreApplication>
 #include <QImage>
 #include <QObject>
 #include <QPainter>
@@ -15,7 +14,6 @@
 #include <QStandardItem>
 #include <QString>
 #include "citra_qt/util/util.h"
-#include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/loader/smdh.h"
 
@@ -72,24 +70,6 @@ static QString GetQStringShortTitleFromSMDH(const Loader::SMDH& smdh,
                                             Loader::SMDH::TitleLanguage language) {
     return QString::fromUtf16(smdh.GetShortTitle(language).data());
 }
-
-struct CompatStatus {
-    QString color;
-    const char* text;
-    const char* tooltip;
-};
-
-// When this is put in a class, MSVS builds crash when closing Citra
-// clang-format off
-const static inline std::map<QString, CompatStatus> status_data = {
-{ "0", { "#5c93ed", QT_TRANSLATE_NOOP("GameList", "Perfect"),    QT_TRANSLATE_NOOP("GameList", "Game functions flawless with no audio or graphical glitches, all tested functionality works as intended without\nany workarounds needed.") } },
-{ "1", { "#47d35c", QT_TRANSLATE_NOOP("GameList", "Great"),      QT_TRANSLATE_NOOP("GameList", "Game functions with minor graphical or audio glitches and is playable from start to finish. May require some\nworkarounds.") } },
-{ "2", { "#94b242", QT_TRANSLATE_NOOP("GameList", "Okay"),       QT_TRANSLATE_NOOP("GameList", "Game functions with major graphical or audio glitches, but game is playable from start to finish with\nworkarounds.") } },
-{ "3", { "#f2d624", QT_TRANSLATE_NOOP("GameList", "Bad"),        QT_TRANSLATE_NOOP("GameList", "Game functions, but with major graphical or audio glitches. Unable to progress in specific areas due to glitches\neven with workarounds.") } },
-{ "4", { "#FF0000", QT_TRANSLATE_NOOP("GameList", "Intro/Menu"), QT_TRANSLATE_NOOP("GameList", "Game is completely unplayable due to major graphical or audio glitches. Unable to progress past the Start\nScreen.") } },
-{ "5", { "#828282", QT_TRANSLATE_NOOP("GameList", "Won't Boot"), QT_TRANSLATE_NOOP("GameList", "The game crashes when attempting to startup.") } },
-{ "99",{ "#000000", QT_TRANSLATE_NOOP("GameList", "Not Tested"), QT_TRANSLATE_NOOP("GameList", "The game has not yet been tested.") } }, };
-// clang-format on
 
 class GameListItem : public QStandardItem {
 public:
@@ -151,21 +131,35 @@ public:
     static const int CompatNumberRole = Qt::UserRole + 1;
     GameListItemCompat() = default;
     explicit GameListItemCompat(const QString compatiblity) {
-        auto iterator = status_data.find(compatiblity);
-        if (iterator == status_data.end()) {
-            NGLOG_WARNING(Frontend, "Invalid compatibility number {}", compatiblity.toStdString());
-            return;
-        }
-        CompatStatus status = iterator->second;
+        Compat_Status status = status_data.find(compatiblity)->second;
         setData(compatiblity, CompatNumberRole);
-        setText(QCoreApplication::translate("GameList", status.text));
-        setToolTip(QCoreApplication::translate("GameList", status.tooltip));
+        setText(status.text);
+        setToolTip(status.tooltip);
         setData(CreateCirclePixmapFromColor(status.color), Qt::DecorationRole);
     }
 
     bool operator<(const QStandardItem& other) const override {
         return data(CompatNumberRole) < other.data(CompatNumberRole);
     }
+
+private:
+    struct Compat_Status {
+        QString color;
+        QString text;
+        QString tooltip;
+    };
+
+    // clang-format off
+    const static inline std::map<QString, Compat_Status> status_data = {
+        { "0",{ "#5c93ed", QObject::tr("Perfect"), QObject::tr("Game functions flawless with no audio or graphical glitches, all tested functionality works as intended without\nany workarounds needed.") } },
+    { "1",{ "#47d35c", QObject::tr("Great"), QObject::tr("Game functions with minor graphical or audio glitches and is playable from start to finish. May require some\nworkarounds.") } },
+    { "2",{ "#94b242", QObject::tr("Okay"), QObject::tr("Game functions with major graphical or audio glitches, but game is playable from start to finish with\nworkarounds.") } },
+    { "3",{ "#f2d624", QObject::tr("Bad"), QObject::tr("Game functions, but with major graphical or audio glitches. Unable to progress in specific areas due to glitches\neven with workarounds.") } },
+    { "4",{ "#FF0000", QObject::tr("Intro/Menu"), QObject::tr("Game is completely unplayable due to major graphical or audio glitches. Unable to progress past the Start\nScreen.") } },
+    { "5",{ "#828282", QObject::tr("Won't Boot"), QObject::tr("The game crashes when attempting to startup.") } },
+    { "" ,{ "#000000", QObject::tr("Not Tested"), QObject::tr("The game has not yet been tested.") } },
+    };
+    // clang-format on
 };
 
 /**
@@ -213,7 +207,7 @@ class GameListWorker : public QObject, public QRunnable {
 
 public:
     GameListWorker(QString dir_path, bool deep_scan,
-                   const std::unordered_map<std::string, QString>& compatibility_list)
+                   std::unordered_map<std::string, QString>& compatibility_list)
         : QObject(), QRunnable(), dir_path(dir_path), deep_scan(deep_scan),
           compatibility_list(compatibility_list) {}
 
@@ -241,7 +235,7 @@ private:
     QStringList watch_list;
     QString dir_path;
     bool deep_scan;
-    const std::unordered_map<std::string, QString>& compatibility_list;
+    std::unordered_map<std::string, QString>& compatibility_list;
     std::atomic_bool stop_processing;
 
     void AddFstEntriesToGameList(const std::string& dir_path, unsigned int recursion = 0);
