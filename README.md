@@ -1,3 +1,22 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: ed42b4b0d25c94fb67d7812d902b90f29152b528
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[5](https://github.com/citra-emu/citra-canary/pull/5)|[fd2238b](https://github.com/citra-emu/citra-canary/pull/5/files/)|Canary Base|[chris062689](https://github.com/chris062689)|Yes|
+|[3688](https://github.com/citra-emu/citra/pull/3688)|[bc7cf83](https://github.com/citra-emu/citra/pull/3688/files/)|Added current translations from Transifex|[Hexagon12](https://github.com/Hexagon12)|Yes|
+|[3617](https://github.com/citra-emu/citra/pull/3617)|[152ef67](https://github.com/citra-emu/citra/pull/3617/files/)|QT: Add support for multiple game directories|[BreadFish64](https://github.com/BreadFish64)|Yes|
+|[3566](https://github.com/citra-emu/citra/pull/3566)|[c274790](https://github.com/citra-emu/citra/pull/3566/files/)|citra_qt: camera integration|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[3499](https://github.com/citra-emu/citra/pull/3499)|[968454a](https://github.com/citra-emu/citra/pull/3499/files/)|Convert PICA Shaders to GLSL|[jroweboy](https://github.com/jroweboy)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra Emulator
