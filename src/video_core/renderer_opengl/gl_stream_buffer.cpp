@@ -9,6 +9,10 @@
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
+GLsizeiptr Hack(GLsizeiptr size) {
+    return size * 2;
+}
+
 OGLStreamBuffer::OGLStreamBuffer(GLenum target, GLsizeiptr size, bool prefer_coherent)
     : gl_target(target), buffer_size(size) {
     gl_buffer.Create();
@@ -19,11 +23,11 @@ OGLStreamBuffer::OGLStreamBuffer(GLenum target, GLsizeiptr size, bool prefer_coh
         coherent = prefer_coherent;
         GLbitfield flags =
             GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : 0);
-        glBufferStorage(gl_target, buffer_size, nullptr, flags);
+        glBufferStorage(gl_target, Hack(buffer_size), nullptr, flags);
         mapped_ptr = static_cast<u8*>(glMapBufferRange(
             gl_target, 0, buffer_size, flags | (coherent ? 0 : GL_MAP_FLUSH_EXPLICIT_BIT)));
     } else {
-        glBufferData(gl_target, buffer_size, nullptr, GL_STREAM_DRAW);
+        glBufferData(gl_target, Hack(buffer_size), nullptr, GL_STREAM_DRAW);
     }
 }
 
