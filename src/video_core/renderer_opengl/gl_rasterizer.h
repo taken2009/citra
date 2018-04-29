@@ -50,6 +50,7 @@ public:
     bool AccelerateFill(const GPU::Regs::MemoryFillConfig& config) override;
     bool AccelerateDisplay(const GPU::Regs::FramebufferConfig& config, PAddr framebuffer_addr,
                            u32 pixel_stride, ScreenInfo& screen_info) override;
+    bool AccelerateDrawBatch(bool is_indexed) override;
 
 private:
     struct SamplerInfo {
@@ -73,6 +74,7 @@ private:
 
     /// Structure that the hardware rendered vertices are composed of
     struct HardwareVertex {
+        HardwareVertex() = default;
         HardwareVertex(const Pica::Shader::OutputVertex& v, bool flip_quaternion) {
             position[0] = v.pos.x.ToFloat32();
             position[1] = v.pos.y.ToFloat32();
@@ -104,14 +106,14 @@ private:
             }
         }
 
-        GLfloat position[4];
-        GLfloat color[4];
-        GLfloat tex_coord0[2];
-        GLfloat tex_coord1[2];
-        GLfloat tex_coord2[2];
+        GLvec4 position;
+        GLvec4 color;
+        GLvec2 tex_coord0;
+        GLvec2 tex_coord1;
+        GLvec2 tex_coord2;
         GLfloat tex_coord0_w;
-        GLfloat normquat[4];
-        GLfloat view[3];
+        GLvec4 normquat;
+        GLvec3 view;
     };
 
     /// Syncs entire status to match PICA registers
@@ -237,8 +239,11 @@ private:
 
     std::unique_ptr<ShaderProgramManager> shader_program_manager;
 
+    OGLVertexArray sw_vao;
+    OGLVertexArray hw_vao;
+    std::array<bool, 16> hw_vao_enabled_attributes;
+
     std::array<SamplerInfo, 3> texture_samplers;
-    OGLVertexArray vertex_array;
     static constexpr size_t VERTEX_BUFFER_SIZE = 32 * 1024 * 1024;
     OGLStreamBuffer vertex_buffer;
     OGLBuffer uniform_buffer;
@@ -273,4 +278,22 @@ private:
     OGLBuffer proctex_diff_lut_buffer;
     OGLTexture proctex_diff_lut;
     std::array<GLvec4, 256> proctex_diff_lut_data{};
+
+    GLint vs_input_index_min = 0;
+    GLint vs_input_index_max = 0;
+    GLsizeiptr vs_input_size = 0;
+
+    void AnalyzeVertexArray(bool is_indexed);
+    void SetupVertexArray(u8* array_ptr, GLintptr buffer_offset);
+
+    OGLBuffer vs_uniform_buffer;
+
+    bool SetupVertexShader();
+
+    OGLBuffer gs_uniform_buffer;
+
+    bool SetupGeometryShader();
+
+    enum class AccelDraw { Disabled, Arrays, Indexed };
+    AccelDraw accelerate_draw;
 };
