@@ -12,8 +12,10 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "common/vector_math.h"
 #include "core/hw/gpu.h"
+#include "core/settings.h"
 #include "video_core/pica_state.h"
 #include "video_core/regs_framebuffer.h"
 #include "video_core/regs_rasterizer.h"
@@ -26,6 +28,9 @@
 using PixelFormat = SurfaceParams::PixelFormat;
 using SurfaceType = SurfaceParams::SurfaceType;
 
+MICROPROFILE_DEFINE(OpenGL_VAO, "OpenGL", "Vertex Array Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_VS, "OpenGL", "Vertex Shader Setup", MP_RGB(128, 128, 192));
+MICROPROFILE_DEFINE(OpenGL_GS, "OpenGL", "Geometry Shader Setup", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
 MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(100, 100, 255));
 MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
@@ -47,12 +52,9 @@ RasterizerOpenGL::RasterizerOpenGL()
     state.texture_cube_unit.sampler = texture_cube_sampler.sampler.handle;
 
     // Generate VBO, VAO and UBO
-    vertex_array.Create();
-
-    state.draw.vertex_array = vertex_array.handle;
-    state.draw.vertex_buffer = vertex_buffer.GetHandle();
-    state.draw.uniform_buffer = uniform_buffer.GetHandle();
-    state.Apply();
+    sw_vao.Create();
+    hw_vao.Create();
+    hw_vao_enabled_attributes.fill(false);
 
     uniform_block_data.dirty = true;
 
@@ -67,10 +69,18 @@ RasterizerOpenGL::RasterizerOpenGL()
     uniform_block_data.proctex_diff_lut_dirty = true;
 
     glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniform_buffer_alignment);
+    uniform_size_aligned_vs =
+        Common::AlignUp<size_t>(sizeof(VSUniformData), uniform_buffer_alignment);
+    uniform_size_aligned_gs =
+        Common::AlignUp<size_t>(sizeof(GSUniformData), uniform_buffer_alignment);
     uniform_size_aligned_fs =
         Common::AlignUp<size_t>(sizeof(UniformData), uniform_buffer_alignment);
 
     // Set vertex attributes
+    state.draw.vertex_array = sw_vao.handle;
+    state.draw.vertex_buffer = vertex_buffer.GetHandle();
+    state.Apply();
+
     glVertexAttribPointer(GLShader::ATTRIBUTE_POSITION, 4, GL_FLOAT, GL_FALSE,
                           sizeof(HardwareVertex), (GLvoid*)offsetof(HardwareVertex, position));
     glEnableVertexAttribArray(GLShader::ATTRIBUTE_POSITION);
@@ -176,8 +186,14 @@ RasterizerOpenGL::RasterizerOpenGL()
     glActiveTexture(TextureUnits::ProcTexDiffLUT.Enum());
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, proctex_diff_lut_buffer.handle);
 
+    state.draw.vertex_array = hw_vao.handle;
+    state.Apply();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_buffer.GetHandle());
+
     shader_program_manager =
         std::make_unique<ShaderProgramManager>(GLAD_GL_ARB_separate_shader_objects);
+
+    accelerate_draw = AccelDraw::Disabled;
 
     glEnable(GL_BLEND);
 
@@ -258,12 +274,187 @@ void RasterizerOpenGL::AddTriangle(const Pica::Shader::OutputVertex& v0,
     vertex_batch.emplace_back(v2, AreQuaternionsOpposite(v0.quat, v2.quat));
 }
 
+static constexpr std::array<GLenum, 4> vs_attrib_types{
+    GL_BYTE,          // VertexAttributeFormat::BYTE
+    GL_UNSIGNED_BYTE, // VertexAttributeFormat::UBYTE
+    GL_SHORT,         // VertexAttributeFormat::SHORT
+    GL_FLOAT          // VertexAttributeFormat::FLOAT
+};
+
+void RasterizerOpenGL::AnalyzeVertexArray(bool is_indexed) {
+    const auto& regs = Pica::g_state.regs;
+    const auto& vertex_attributes = regs.pipeline.vertex_attributes;
+
+    // Load input attributes
+    const u32 base_address = vertex_attributes.GetPhysicalBaseAddress();
+
+    const auto& index_info = regs.pipeline.index_array;
+    const u8* index_address_8 = Memory::GetPhysicalPointer(base_address + index_info.offset);
+    const u16* index_address_16 = reinterpret_cast<const u16*>(index_address_8);
+    const bool index_u16 = index_info.format != 0;
+
+    u32 vertex_min = regs.pipeline.vertex_offset;
+    u32 vertex_max = regs.pipeline.vertex_offset + regs.pipeline.num_vertices - 1;
+    if (is_indexed) {
+        vertex_min = 0xFFFF;
+        vertex_max = 0;
+        for (u32 index = 0; index < regs.pipeline.num_vertices; ++index) {
+            u32 vertex = index_u16 ? index_address_16[index] : index_address_8[index];
+            if (index_u16 && vertex == 0xFFFF) {
+                continue;
+            }
+            vertex_min = std::min(vertex_min, vertex);
+            vertex_max = std::max(vertex_max, vertex);
+        }
+    }
+    const u32 vertex_num = vertex_max - vertex_min + 1;
+    vs_input_index_min = static_cast<GLint>(vertex_min);
+    vs_input_index_max = static_cast<GLint>(vertex_max);
+
+    vs_input_size = 0;
+    for (auto& loader : vertex_attributes.attribute_loaders) {
+        if (loader.component_count != 0) {
+            vs_input_size += loader.byte_count * vertex_num;
+        }
+    }
+}
+
+void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset) {
+    MICROPROFILE_SCOPE(OpenGL_VAO);
+    const auto& regs = Pica::g_state.regs;
+    const auto& vertex_attributes = regs.pipeline.vertex_attributes;
+
+    // Load input attributes
+    const u32 base_address = vertex_attributes.GetPhysicalBaseAddress();
+
+    state.draw.vertex_array = hw_vao.handle;
+    state.draw.vertex_buffer = vertex_buffer.GetHandle();
+    state.Apply();
+
+    std::array<bool, 16> enable_attributes{};
+    ASSERT(vertex_attributes.GetNumTotalAttributes() < 16);
+
+    for (int i = 0; i < 12; ++i) {
+        const auto& loader = vertex_attributes.attribute_loaders[i];
+
+        if (!loader.component_count || !loader.byte_count) {
+            continue;
+        }
+
+        u32 offset = 0;
+        for (unsigned comp = 0; comp < loader.component_count && comp < 12; ++comp) {
+            int attribute_index = loader.GetComponent(comp);
+            if (attribute_index < 12) {
+                if (vertex_attributes.GetNumElements(attribute_index) != 0) {
+                    offset = Common::AlignUp(
+                        offset, vertex_attributes.GetElementSizeInBytes(attribute_index));
+
+                    u32 input_reg =
+                        regs.vs.GetRegisterForAttribute(static_cast<u32>(attribute_index));
+                    glVertexAttribPointer(input_reg,
+                                          vertex_attributes.GetNumElements(attribute_index),
+                                          vs_attrib_types[static_cast<size_t>(
+                                              vertex_attributes.GetFormat(attribute_index))],
+                                          GL_FALSE, static_cast<GLsizei>(loader.byte_count),
+                                          reinterpret_cast<GLvoid*>(buffer_offset + offset));
+                    enable_attributes[input_reg] = true;
+
+                    offset += vertex_attributes.GetStride(attribute_index);
+                }
+            } else {
+                // Attribute ids 12, 13, 14 and 15 signify 4, 8, 12 and 16-byte paddings,
+                // respectively
+                offset = Common::AlignUp(offset, 4);
+                offset += (attribute_index - 11) * 4;
+            }
+        }
+
+        PAddr data_addr = vertex_attributes.GetPhysicalBaseAddress() + loader.data_offset +
+                          (vs_input_index_min * loader.byte_count);
+
+        const u32 vertex_num = vs_input_index_max - vs_input_index_min + 1;
+        u32 data_size = loader.byte_count * vertex_num;
+
+        // TODO: cache this too
+        res_cache.FlushRegion(data_addr, data_size, nullptr);
+        std::memcpy(array_ptr, Memory::GetPhysicalPointer(data_addr), data_size);
+
+        array_ptr += data_size;
+        buffer_offset += data_size;
+    }
+
+    for (u32 i = 0; i < 16; ++i) {
+        if (enable_attributes[i] != hw_vao_enabled_attributes[i]) {
+            if (enable_attributes[i]) {
+                glEnableVertexAttribArray(i);
+            } else {
+                glDisableVertexAttribArray(i);
+            }
+            hw_vao_enabled_attributes[i] = enable_attributes[i];
+        }
+
+        if (vertex_attributes.IsDefaultAttribute(i)) {
+            u32 reg = regs.vs.GetRegisterForAttribute(i);
+            if (!enable_attributes[reg]) {
+                glVertexAttrib4f(reg, Pica::g_state.input_default_attributes.attr[i].x.ToFloat32(),
+                                 Pica::g_state.input_default_attributes.attr[i].y.ToFloat32(),
+                                 Pica::g_state.input_default_attributes.attr[i].z.ToFloat32(),
+                                 Pica::g_state.input_default_attributes.attr[i].w.ToFloat32());
+            }
+        }
+    }
+}
+
+bool RasterizerOpenGL::SetupVertexShader() {
+    MICROPROFILE_SCOPE(OpenGL_VS);
+
+    const GLShader::PicaVSConfig vs_config(Pica::g_state.regs, Pica::g_state.vs);
+    return shader_program_manager->UseProgrammableVertexShader(vs_config, Pica::g_state.vs);
+}
+
+bool RasterizerOpenGL::SetupGeometryShader() {
+    MICROPROFILE_SCOPE(OpenGL_GS);
+    const auto& regs = Pica::g_state.regs;
+
+    GLuint shader;
+
+    if (regs.pipeline.use_gs == Pica::PipelineRegs::UseGS::No) {
+        const GLShader::PicaFixedGSConfig gs_config(regs);
+        shader_program_manager->UseFixedGeometryShader(gs_config);
+        return true;
+    } else {
+        const GLShader::PicaGSConfig gs_config(regs, Pica::g_state.gs);
+        return shader_program_manager->UseProgrammableGeometryShader(gs_config, Pica::g_state.gs);
+    }
+}
+
+bool RasterizerOpenGL::AccelerateDrawBatch(bool is_indexed) {
+    const auto& regs = Pica::g_state.regs;
+    if (regs.pipeline.use_gs != Pica::PipelineRegs::UseGS::No) {
+        if (regs.pipeline.gs_config.mode != Pica::PipelineRegs::GSMode::Point) {
+            return false;
+        }
+    }
+
+    if (!SetupVertexShader())
+        return false;
+
+    if (!SetupGeometryShader())
+        return false;
+
+    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
+    DrawTriangles();
+
+    return true;
+}
+
 void RasterizerOpenGL::DrawTriangles() {
-    if (vertex_batch.empty())
+    if (vertex_batch.empty() && accelerate_draw == AccelDraw::Disabled)
         return;
 
     MICROPROFILE_SCOPE(OpenGL_Drawing);
     const auto& regs = Pica::g_state.regs;
+    const bool use_gs = regs.pipeline.use_gs == Pica::PipelineRegs::UseGS::Yes;
 
     const bool has_stencil =
         regs.framebuffer.framebuffer.depth_format == Pica::FramebufferRegs::DepthFormat::D24S8;
@@ -474,7 +665,7 @@ void RasterizerOpenGL::DrawTriangles() {
     }
 
     // Sync the uniform data
-    UploadUniforms();
+    UploadUniforms(use_gs);
 
     // Viewport can have negative offsets or larger
     // dimensions than our framebuffer sub-rect.
@@ -487,28 +678,123 @@ void RasterizerOpenGL::DrawTriangles() {
     state.scissor.height = draw_rect.GetHeight();
     state.Apply();
 
-    shader_program_manager->UseTrivialVertexShader();
-    shader_program_manager->UseTrivialGeometryShader();
-    shader_program_manager->ApplyTo(state);
-    state.Apply();
-
     // Draw the vertex batch
-    size_t max_vertices = 3 * (vertex_buffer.GetSize() / (3 * sizeof(HardwareVertex)));
-    for (size_t base_vertex = 0; base_vertex < vertex_batch.size(); base_vertex += max_vertices) {
-        size_t vertices = std::min(max_vertices, vertex_batch.size() - base_vertex);
-        size_t vertex_size = vertices * sizeof(HardwareVertex);
-        u8* vbo;
-        GLintptr offset;
-        std::tie(vbo, offset, std::ignore) = vertex_buffer.Map(vertex_size, sizeof(HardwareVertex));
-        memcpy(vbo, vertex_batch.data() + base_vertex, vertex_size);
-        vertex_buffer.Unmap(vertex_size);
-        glDrawArrays(GL_TRIANGLES, offset / sizeof(HardwareVertex), (GLsizei)vertices);
+    if (accelerate_draw != AccelDraw::Disabled) {
+        GLenum primitive_mode;
+        switch (regs.pipeline.triangle_topology) {
+        case Pica::PipelineRegs::TriangleTopology::Shader:
+        case Pica::PipelineRegs::TriangleTopology::List:
+            primitive_mode = GL_TRIANGLES;
+            break;
+        case Pica::PipelineRegs::TriangleTopology::Fan:
+            primitive_mode = GL_TRIANGLE_FAN;
+            break;
+        case Pica::PipelineRegs::TriangleTopology::Strip:
+            primitive_mode = GL_TRIANGLE_STRIP;
+            break;
+        default:
+            UNREACHABLE();
+        }
+
+        if (use_gs) {
+            switch ((regs.gs.max_input_attribute_index + 1) /
+                    (regs.pipeline.vs_outmap_total_minus_1_a + 1)) {
+            case 1:
+                primitive_mode = GL_POINTS;
+                break;
+            case 2:
+                primitive_mode = GL_LINES;
+                break;
+            case 4:
+                primitive_mode = GL_LINES_ADJACENCY;
+                break;
+            case 3:
+                primitive_mode = GL_TRIANGLES;
+                break;
+            case 6:
+                primitive_mode = GL_TRIANGLES_ADJACENCY;
+                break;
+            default:
+                UNREACHABLE();
+            }
+        }
+
+        const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
+        const bool index_u16 = regs.pipeline.index_array.format != 0;
+        const size_t index_buffer_size = regs.pipeline.num_vertices * (index_u16 ? 2 : 1);
+
+        AnalyzeVertexArray(is_indexed);
+        state.draw.vertex_buffer = vertex_buffer.GetHandle();
+        state.Apply();
+
+        size_t buffer_size = static_cast<size_t>(vs_input_size);
+        if (is_indexed) {
+            buffer_size = Common::AlignUp(buffer_size, 4) + index_buffer_size;
+        }
+
+        size_t ptr_pos = 0;
+        u8* buffer_ptr;
+        GLintptr buffer_offset;
+        std::tie(buffer_ptr, buffer_offset, std::ignore) =
+            vertex_buffer.Map(static_cast<GLsizeiptr>(buffer_size), 4);
+
+        SetupVertexArray(buffer_ptr, buffer_offset);
+        ptr_pos += vs_input_size;
+
+        GLintptr index_buffer_offset = 0;
+        if (is_indexed) {
+            ptr_pos = Common::AlignUp(ptr_pos, 4);
+
+            const u8* index_data = Memory::GetPhysicalPointer(
+                regs.pipeline.vertex_attributes.GetPhysicalBaseAddress() +
+                regs.pipeline.index_array.offset);
+
+            std::memcpy(&buffer_ptr[ptr_pos], index_data, index_buffer_size);
+
+            index_buffer_offset = buffer_offset + static_cast<GLintptr>(ptr_pos);
+            ptr_pos += index_buffer_size;
+        }
+
+        vertex_buffer.Unmap(buffer_size);
+
+        shader_program_manager->ApplyTo(state);
+        state.Apply();
+        if (is_indexed) {
+            glDrawRangeElementsBaseVertex(
+                primitive_mode, vs_input_index_min, vs_input_index_max, regs.pipeline.num_vertices,
+                index_u16 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE,
+                reinterpret_cast<const void*>(index_buffer_offset), -vs_input_index_min);
+        } else {
+            glDrawArrays(primitive_mode, 0, regs.pipeline.num_vertices);
+        }
+    } else {
+        state.draw.vertex_array = sw_vao.handle;
+        state.draw.vertex_buffer = vertex_buffer.GetHandle();
+        shader_program_manager->UseTrivialVertexShader();
+        shader_program_manager->UseTrivialGeometryShader();
+        shader_program_manager->ApplyTo(state);
+        state.Apply();
+
+        size_t max_vertices = 3 * (VERTEX_BUFFER_SIZE / (3 * sizeof(HardwareVertex)));
+        for (size_t base_vertex = 0; base_vertex < vertex_batch.size();
+             base_vertex += max_vertices) {
+            size_t vertices = std::min(max_vertices, vertex_batch.size() - base_vertex);
+            size_t vertex_size = vertices * sizeof(HardwareVertex);
+            u8* vbo;
+            GLintptr offset;
+            std::tie(vbo, offset, std::ignore) =
+                vertex_buffer.Map(vertex_size, sizeof(HardwareVertex));
+            std::memcpy(vbo, vertex_batch.data() + base_vertex, vertex_size);
+            vertex_buffer.Unmap(vertex_size);
+            glDrawArrays(GL_TRIANGLES, offset / sizeof(HardwareVertex), (GLsizei)vertices);
+        }
     }
 
     // Disable scissor test
     state.scissor.enabled = false;
 
     vertex_batch.clear();
+    accelerate_draw = AccelDraw::Disabled;
 
     // Unbind textures for potential future use as framebuffer attachments
     for (unsigned texture_index = 0; texture_index < pica_textures.size(); ++texture_index) {
@@ -1648,18 +1934,46 @@ void RasterizerOpenGL::SyncLightDistanceAttenuationScale(int light_index) {
     }
 }
 
-void RasterizerOpenGL::UploadUniforms() {
-    if (!uniform_block_data.dirty)
+void RasterizerOpenGL::UploadUniforms(bool use_gs) {
+    bool sync_vs = accelerate_draw != AccelDraw::Disabled;
+    bool sync_gs = accelerate_draw != AccelDraw::Disabled && use_gs;
+    bool sync_fs = uniform_block_data.dirty;
+
+    if (!sync_vs && !sync_gs && !sync_fs)
         return;
 
-    size_t uniform_size = uniform_size_aligned_fs;
+    size_t uniform_size =
+        uniform_size_aligned_vs + uniform_size_aligned_gs + uniform_size_aligned_fs;
+    size_t used_bytes = 0;
     u8* uniforms;
     GLintptr offset;
-    std::tie(uniforms, offset, std::ignore) =
+    bool invalidate;
+    std::tie(uniforms, offset, invalidate) =
         uniform_buffer.Map(uniform_size, uniform_buffer_alignment);
-    std::memcpy(uniforms, &uniform_block_data.data, sizeof(UniformData));
-    uniform_buffer.Unmap(uniform_size);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer.GetHandle(), offset,
-                      sizeof(UniformData));
-    uniform_block_data.dirty = false;
+
+    if (sync_vs) {
+        reinterpret_cast<VSUniformData*>(uniforms + used_bytes)
+            ->uniforms.SetFromRegs(Pica::g_state.regs.vs, Pica::g_state.vs);
+        glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(UniformBindings::VS),
+                          uniform_buffer.GetHandle(), offset + used_bytes, sizeof(VSUniformData));
+        used_bytes += uniform_size_aligned_vs;
+    }
+
+    if (sync_gs) {
+        reinterpret_cast<GSUniformData*>(uniforms + used_bytes)
+            ->uniforms.SetFromRegs(Pica::g_state.regs.gs, Pica::g_state.gs);
+        glBindBufferRange(GL_UNIFORM_BUFFER, static_cast<GLuint>(UniformBindings::GS),
+                          uniform_buffer.GetHandle(), offset + used_bytes, sizeof(GSUniformData));
+        used_bytes += uniform_size_aligned_gs;
+    }
+
+    if (sync_fs || invalidate) {
+        std::memcpy(uniforms + used_bytes, &uniform_block_data.data, sizeof(UniformData));
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer.GetHandle(), offset + used_bytes,
+                          sizeof(UniformData));
+        uniform_block_data.dirty = false;
+        used_bytes += uniform_size_aligned_fs;
+    }
+
+    uniform_buffer.Unmap(used_bytes);
 }

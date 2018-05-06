@@ -50,6 +50,7 @@ public:
     bool AccelerateFill(const GPU::Regs::MemoryFillConfig& config) override;
     bool AccelerateDisplay(const GPU::Regs::FramebufferConfig& config, PAddr framebuffer_addr,
                            u32 pixel_stride, ScreenInfo& screen_info) override;
+    bool AccelerateDrawBatch(bool is_indexed) override;
 
 private:
     struct SamplerInfo {
@@ -73,6 +74,7 @@ private:
 
     /// Structure that the hardware rendered vertices are composed of
     struct HardwareVertex {
+        HardwareVertex() = default;
         HardwareVertex(const Pica::Shader::OutputVertex& v, bool flip_quaternion) {
             position[0] = v.pos.x.ToFloat32();
             position[1] = v.pos.y.ToFloat32();
@@ -216,7 +218,7 @@ private:
     void SyncLightDistanceAttenuationScale(int light_index);
 
     /// Upload the uniform blocks to the uniform buffer object
-    void UploadUniforms();
+    void UploadUniforms(bool use_gs);
 
     OpenGLState state;
 
@@ -244,12 +246,17 @@ private:
     static constexpr size_t VERTEX_BUFFER_SIZE = 32 * 1024 * 1024;
     static constexpr size_t UNIFORM_BUFFER_SIZE = 2 * 1024 * 1024;
 
+    OGLVertexArray sw_vao;
+    OGLVertexArray hw_vao;
+    std::array<bool, 16> hw_vao_enabled_attributes;
+
     std::array<SamplerInfo, 3> texture_samplers;
-    OGLVertexArray vertex_array;
     OGLStreamBuffer vertex_buffer;
     OGLStreamBuffer uniform_buffer;
     OGLFramebuffer framebuffer;
     GLint uniform_buffer_alignment;
+    size_t uniform_size_aligned_vs;
+    size_t uniform_size_aligned_gs;
     size_t uniform_size_aligned_fs;
 
     SamplerInfo texture_cube_sampler;
@@ -281,4 +288,18 @@ private:
     OGLBuffer proctex_diff_lut_buffer;
     OGLTexture proctex_diff_lut;
     std::array<GLvec4, 256> proctex_diff_lut_data{};
+
+    GLint vs_input_index_min = 0;
+    GLint vs_input_index_max = 0;
+    GLsizeiptr vs_input_size = 0;
+
+    void AnalyzeVertexArray(bool is_indexed);
+    void SetupVertexArray(u8* array_ptr, GLintptr buffer_offset);
+
+    bool SetupVertexShader();
+
+    bool SetupGeometryShader();
+
+    enum class AccelDraw { Disabled, Arrays, Indexed };
+    AccelDraw accelerate_draw;
 };
