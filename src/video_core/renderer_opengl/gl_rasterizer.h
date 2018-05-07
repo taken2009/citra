@@ -253,6 +253,7 @@ private:
     std::array<SamplerInfo, 3> texture_samplers;
     OGLStreamBuffer vertex_buffer;
     OGLStreamBuffer uniform_buffer;
+    GLsizeiptr vertex_buffer_size;
     OGLFramebuffer framebuffer;
     GLint uniform_buffer_alignment;
     size_t uniform_size_aligned_vs;
