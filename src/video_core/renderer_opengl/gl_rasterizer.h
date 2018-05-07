@@ -286,6 +286,7 @@ private:
     OGLStreamBuffer uniform_buffer;
     OGLStreamBuffer index_buffer;
     OGLStreamBuffer texture_buffer;
+    GLsizeiptr vertex_buffer_size;
     OGLFramebuffer framebuffer;
     GLint uniform_buffer_alignment;
     size_t uniform_size_aligned_vs;
