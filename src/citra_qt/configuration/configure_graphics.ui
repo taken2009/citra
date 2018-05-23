@@ -52,6 +52,13 @@
          </layout>
         </item>
       <item>
+     <widget class="QCheckBox" name="toggle_bos">
+      <property name="text">
+       <string>Ignore format reinterpretation</string>
+      </property>
+     </widget>
+    </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QCheckBox" name="toggle_frame_limit">
@@ -81,13 +88,6 @@
      </layout>
     </widget>
    </item>
-    <item>
-     <widget class="QCheckBox" name="toggle_bos">
-      <property name="text">
-       <string>Ignore format reinterpretation</string>
-      </property>
-     </widget>
-    </item>
    <item>
     <widget class="QGroupBox" name="rendererBox">
      <property name="title">
