@@ -127,6 +127,8 @@ struct Values {
     bool use_format_reinterpret_hack;
     bool use_frame_limit;
     u16 frame_limit;
+    bool FMV_hack;
+    u16 AddTicks;
 
     LayoutOption layout_option;
     bool swap_screen;
