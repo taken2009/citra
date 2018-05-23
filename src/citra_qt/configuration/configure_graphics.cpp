@@ -30,6 +30,8 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     connect(ui->toggle_hw_shader, &QCheckBox::stateChanged, ui->hw_shader_group,
             &QWidget::setEnabled);
 
+    ui->AddTicks->setEnabled(Settings::values.FMV_hack);
+    connect(ui->FMV_hack, &QCheckBox::stateChanged, ui->AddTicks, &QSpinBox::setEnabled);
     connect(ui->layout_bg, SIGNAL (released()), this, SLOT (showLayoutBackgroundDialog()));
 }
 
@@ -62,6 +64,8 @@ void ConfigureGraphics::setConfiguration() {
     ui->toggle_bos->setChecked(Settings::values.use_bos);
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
+    ui->FMV_hack->setChecked(Settings::values.FMV_hack);
+    ui->AddTicks->setValue(Settings::values.AddTicks);
 }
 
 void ConfigureGraphics::applyConfiguration() {
@@ -84,6 +88,8 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.layout_option =
         static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
     Settings::values.swap_screen = ui->swap_screen->isChecked();
+    Settings::values.FMV_hack = ui->FMV_hack->isChecked();
+    Settings::values.AddTicks = ui->AddTicks->value();
     Settings::Apply();
 }
 
