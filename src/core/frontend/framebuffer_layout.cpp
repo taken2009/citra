@@ -174,6 +174,79 @@ FramebufferLayout SideFrameLayout(unsigned width, unsigned height, bool swapped)
     return res;
 }
 
+FramebufferLayout StereoscopicLayout(unsigned width, unsigned height, bool swapped) {
+    ASSERT(width > 0);
+    ASSERT(height > 0);
+
+    // Multiply by two to Halve Screen Width, account for 3DTV stretching
+    float finalAspectRatioTop = TOP_SCREEN_ASPECT_RATIO * 2;
+    float finalAspectRatioBot = BOT_SCREEN_ASPECT_RATIO * 2;
+
+    FramebufferLayout res{width, height, true, true, {}, {}};
+    // Default layout gives equal screen sizes to the top and bottom screen
+    MathUtil::Rectangle<unsigned> screen_window_area{0, 0, width / 2, height / 2};
+    MathUtil::Rectangle<unsigned> top_screen =
+        maxRectangle(screen_window_area, finalAspectRatioTop);
+    MathUtil::Rectangle<unsigned> bot_screen =
+        maxRectangle(screen_window_area, finalAspectRatioBot);
+
+    float window_aspect_ratio = static_cast<float>(height) / width;
+
+    // Apply borders to the left and right sides of each window if needed.
+    top_screen = top_screen.TranslateX((screen_window_area.GetWidth() - top_screen.GetWidth()) / 2);
+    bot_screen = bot_screen.TranslateX((screen_window_area.GetWidth() - bot_screen.GetWidth()) / 2);
+
+    // Apply borders to the top and bottom of both windows together if needed.
+    if (swapped) {
+        bot_screen =
+            bot_screen.TranslateY((screen_window_area.GetHeight() - bot_screen.GetHeight()));
+    } else {
+        top_screen =
+            top_screen.TranslateY((screen_window_area.GetHeight() - top_screen.GetHeight()));
+    }
+
+    // Move the top screen to the bottom if we are swapped.
+    res.top_screen = swapped ? top_screen.TranslateY(height / 2) : top_screen;
+    res.bottom_screen = swapped ? bot_screen : bot_screen.TranslateY(height / 2);
+    return res;
+}
+
+FramebufferLayout StereoscopicSingleScreenLayout(unsigned width, unsigned height, bool swapped) {
+    ASSERT(width > 0);
+    ASSERT(height > 0);
+
+    float emulation_aspect_ratio = swapped ? BOT_SCREEN_ASPECT_RATIO : TOP_SCREEN_ASPECT_RATIO;
+    // Multiply by two to Halve Screen Width, account for 3DTV stretching
+    float finalAspectRatio = emulation_aspect_ratio * 2;
+
+    float window_aspect_ratio = static_cast<float>(height) / width;
+    MathUtil::Rectangle<unsigned> screen_window_area{0, 0, width, height};
+    // Find largest Rectangle that can fit in the window size with the given aspect ratio
+    MathUtil::Rectangle<unsigned> screen_rect =
+        maxRectangle(screen_window_area, emulation_aspect_ratio);
+
+    // Find the final size of the halved screen within the screen_rect
+    MathUtil::Rectangle<unsigned> screen = maxRectangle(screen_rect, finalAspectRatio);
+
+    if (window_aspect_ratio < emulation_aspect_ratio) {
+        // Apply borders to the left and right sides of the window.
+        u32 shift_horizontal = (screen_window_area.GetWidth() - screen_rect.GetWidth()) / 4;
+        screen = screen.TranslateX(shift_horizontal);
+    } else {
+        // Window is narrower than the emulation content => apply borders to the top and bottom
+        u32 shift_vertical = (screen_window_area.GetHeight() - screen_rect.GetHeight()) / 2;
+        screen = screen.TranslateY(shift_vertical);
+    }
+
+    FramebufferLayout res{width, height, !swapped, swapped, {}, {}};
+    if (swapped) {
+        res.bottom_screen = screen;
+    } else {
+        res.top_screen = screen;
+    }
+    return res;
+}
+
 FramebufferLayout CustomFrameLayout(unsigned width, unsigned height) {
     ASSERT(width > 0);
     ASSERT(height > 0);

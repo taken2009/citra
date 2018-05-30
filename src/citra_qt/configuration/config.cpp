@@ -97,11 +97,25 @@ void Config::ReadValues() {
     Settings::values.bg_red = qt_config->value("bg_red", 0.0).toFloat();
     Settings::values.bg_green = qt_config->value("bg_green", 0.0).toFloat();
     Settings::values.bg_blue = qt_config->value("bg_blue", 0.0).toFloat();
+
+    Settings::values.toggle_3d = qt_config->value("toggle_3d", false).toBool();
+    Settings::values.factor_3d = qt_config->value("factor_3d", 0).toInt();
     qt_config->endGroup();
 
     qt_config->beginGroup("Layout");
-    Settings::values.layout_option =
-        static_cast<Settings::LayoutOption>(qt_config->value("layout_option").toInt());
+    if (!Settings::values.toggle_3d) {
+        if (qt_config->value("layout_option").toInt() > 3) {
+            Settings::values.layout_option = Settings::LayoutOption::Default;
+        } else {
+            Settings::values.layout_option =
+                static_cast<Settings::LayoutOption>(qt_config->value("layout_option").toInt());
+        }
+    } else if (qt_config->value("layout_option").toInt() < 4) {
+        Settings::values.layout_option = Settings::LayoutOption::Stereoscopic;
+    } else {
+        Settings::values.layout_option =
+            static_cast<Settings::LayoutOption>(qt_config->value("layout_option").toInt());
+    }
     Settings::values.swap_screen = qt_config->value("swap_screen", false).toBool();
     Settings::values.custom_layout = qt_config->value("custom_layout", false).toBool();
     Settings::values.custom_top_left = qt_config->value("custom_top_left", 0).toInt();
@@ -289,6 +303,8 @@ void Config::SaveValues() {
     qt_config->setValue("use_vsync", Settings::values.use_vsync);
     qt_config->setValue("use_frame_limit", Settings::values.use_frame_limit);
     qt_config->setValue("frame_limit", Settings::values.frame_limit);
+    qt_config->setValue("toggle_3d", Settings::values.toggle_3d);
+    qt_config->setValue("factor_3d", Settings::values.factor_3d);
 
     // Cast to double because Qt's written float values are not human-readable
     qt_config->setValue("bg_red", (double)Settings::values.bg_red);

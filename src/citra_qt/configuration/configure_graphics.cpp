@@ -18,7 +18,17 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit,
             &QSpinBox::setEnabled);
 
-    ui->layoutBox->setEnabled(!Settings::values.custom_layout);
+    if (Settings::values.custom_layout || Settings::values.toggle_3d) {
+        ui->layoutBox->setEnabled(false);
+        if (ui->layout_combobox->currentIndex() < 4) {
+            Settings::values.layout_option = Settings::LayoutOption::Stereoscopic;
+        }
+    } else {
+        ui->layoutBox->setEnabled(true);
+        if (ui->layout_combobox->currentIndex() > 3) {
+            Settings::values.layout_option = Settings::LayoutOption::Default;
+        }
+    }
 
     ui->hw_renderer_group->setEnabled(ui->toggle_hw_renderer->isChecked());
     connect(ui->toggle_hw_renderer, &QCheckBox::stateChanged, ui->hw_renderer_group,
@@ -40,6 +50,8 @@ void ConfigureGraphics::setConfiguration() {
     ui->toggle_vsync->setChecked(Settings::values.use_vsync);
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
     ui->frame_limit->setValue(Settings::values.frame_limit);
+    ui->factor_3d->setValue(Settings::values.factor_3d);
+    ui->toggle_3d->setChecked(Settings::values.toggle_3d);
     ui->layout_combobox->setCurrentIndex(static_cast<int>(Settings::values.layout_option));
     ui->swap_screen->setChecked(Settings::values.swap_screen);
 }
@@ -55,8 +67,27 @@ void ConfigureGraphics::applyConfiguration() {
     Settings::values.use_vsync = ui->toggle_vsync->isChecked();
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
-    Settings::values.layout_option =
-        static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
+    Settings::values.factor_3d = ui->factor_3d->value();
+    Settings::values.toggle_3d = ui->toggle_3d->isChecked();
+    if (!Settings::values.toggle_3d) {
+        ui->layoutBox->setEnabled(true);
+        if (ui->layout_combobox->currentIndex() > 3) {
+            Settings::values.layout_option = Settings::LayoutOption::Default;
+            ui->layout_combobox->setCurrentIndex(0);
+        } else {
+            Settings::values.layout_option =
+                static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
+        }
+    } else {
+        ui->layoutBox->setEnabled(false);
+        if (ui->layout_combobox->currentIndex() < 4) {
+            Settings::values.layout_option = Settings::LayoutOption::Stereoscopic;
+            ui->layout_combobox->setCurrentIndex(4);
+        } else {
+            Settings::values.layout_option =
+                static_cast<Settings::LayoutOption>(ui->layout_combobox->currentIndex());
+        }
+    }
     Settings::values.swap_screen = ui->swap_screen->isChecked();
     Settings::Apply();
 }
