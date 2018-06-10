@@ -1,3 +1,23 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: cf9bfe0690f1934847500cc5079b1aaf3299a507
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[6](https://github.com/citra-emu/citra-canary/pull/6)|[a53a8d3](https://github.com/citra-emu/citra-canary/pull/6/files/)|Canary Base (MinGW Test)|[liushuyu](https://github.com/liushuyu)|Yes|
+|[3804](https://github.com/citra-emu/citra/pull/3804)|[63f756a](https://github.com/citra-emu/citra/pull/3804/files/)|citra-qt: Improve Title Bar display|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[3778](https://github.com/citra-emu/citra/pull/3778)|[781912e](https://github.com/citra-emu/citra/pull/3778/files/)|gl_rasterizer: implement shadow map 2D/Cube - Image load/store version|[wwylele](https://github.com/wwylele)|Yes|
+|[3706](https://github.com/citra-emu/citra/pull/3706)|[b1858c2](https://github.com/citra-emu/citra/pull/3706/files/)|Use Travis CI to build MinGW packages|[liushuyu](https://github.com/liushuyu)|Yes|
+|[3632](https://github.com/citra-emu/citra/pull/3632)|[523c52c](https://github.com/citra-emu/citra/pull/3632/files/)|Add Support for Stereoscopic 3D|[N00byKing](https://github.com/N00byKing)|Yes|
+|[3617](https://github.com/citra-emu/citra/pull/3617)|[30c6c37](https://github.com/citra-emu/citra/pull/3617/files/)|QT: Add support for multiple game directories|[BreadFish64](https://github.com/BreadFish64)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra
