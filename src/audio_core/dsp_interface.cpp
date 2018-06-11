@@ -7,6 +7,7 @@
 #include "audio_core/sink.h"
 #include "audio_core/sink_details.h"
 #include "common/assert.h"
+#include "core/settings.h"
 
 namespace AudioCore {
 
@@ -39,9 +40,16 @@ void DspInterface::EnableStretching(bool enable) {
     perform_time_stretching = enable;
 }
 
-void DspInterface::OutputFrame(const StereoFrame16& frame) {
+void DspInterface::OutputFrame(StereoFrame16& frame) {
     if (!sink)
         return;
+
+    for (int i = 0; i < frame.size(); i++) {
+        frame[i][0] =
+            static_cast<s16>(frame[i][0] * std::exp(6.908 * Settings::values.volume) * 0.001);
+        frame[i][1] =
+            static_cast<s16>(frame[i][1] * std::exp(6.908 * Settings::values.volume) * 0.001);
+    }
 
     if (perform_time_stretching) {
         time_stretcher.AddSamples(&frame[0][0], frame.size());

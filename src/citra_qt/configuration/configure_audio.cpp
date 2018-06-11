@@ -51,6 +51,8 @@ void ConfigureAudio::setConfiguration() {
         }
     }
     ui->audio_device_combo_box->setCurrentIndex(new_device_index);
+
+    ui->volume_slider->setValue(Settings::values.volume * ui->volume_slider->maximum());
 }
 
 void ConfigureAudio::applyConfiguration() {
@@ -61,6 +63,8 @@ void ConfigureAudio::applyConfiguration() {
     Settings::values.audio_device_id =
         ui->audio_device_combo_box->itemText(ui->audio_device_combo_box->currentIndex())
             .toStdString();
+    Settings::values.volume =
+        static_cast<float>(ui->volume_slider->sliderPosition()) / ui->volume_slider->maximum();
     Settings::Apply();
 }
 

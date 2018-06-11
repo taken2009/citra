@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ConfigureAudio</class>
  <widget class="QWidget" name="ConfigureAudio">
@@ -20,8 +19,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="output_sink_combo_box">
-         </widget>
+         <widget class="QComboBox" name="output_sink_combo_box"/>
         </item>
        </layout>
       </item>
@@ -45,10 +43,31 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="audio_device_combo_box">
-         </widget>
+         <widget class="QComboBox" name="audio_device_combo_box"/>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Volume</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QSlider" name="volume_slider">
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="pageStep">
+         <number>10</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -60,14 +79,14 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>20</width>
-       <height>40</height>
+       <width>167</width>
+       <height>55</height>
       </size>
      </property>
     </spacer>
    </item>
   </layout>
  </widget>
- <resources />
- <connections />
+ <resources/>
+ <connections/>
 </ui>
