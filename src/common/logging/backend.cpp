@@ -159,6 +159,8 @@ void FileBackend::Write(const Entry& entry) {
     SUB(Debug, GDBStub)                                                                            \
     CLS(Kernel)                                                                                    \
     SUB(Kernel, SVC)                                                                               \
+    CLS(Applet)                                                                                    \
+    SUB(Applet, SWKBD)                                                                             \
     CLS(Service)                                                                                   \
     SUB(Service, SRV)                                                                              \
     SUB(Service, FRD)                                                                              \
