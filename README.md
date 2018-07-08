@@ -1,3 +1,27 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: 610acf2828eac2ac1cb3b5c62afa0f4705aedde3
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[6](https://github.com/citra-emu/citra-canary/pull/6)|[a53a8d3](https://github.com/citra-emu/citra-canary/pull/6/files/)|Canary Base (MinGW Test)|[liushuyu](https://github.com/liushuyu)|Yes|
+|[3917](https://github.com/citra-emu/citra/pull/3917)|[ba35079](https://github.com/citra-emu/citra/pull/3917/files/)|am: Fix DLC loading.|[Steveice10](https://github.com/Steveice10)|Yes|
+|[3916](https://github.com/citra-emu/citra/pull/3916)|[2927c88](https://github.com/citra-emu/citra/pull/3916/files/)|gl_rasterizer: implement mipmap for procedural texture|[wwylele](https://github.com/wwylele)|Yes|
+|[3910](https://github.com/citra-emu/citra/pull/3910)|[2955d52](https://github.com/citra-emu/citra/pull/3910/files/)|gl_rasterizer: implement mipmap by forwarding PICA mipmap configuration|[wwylele](https://github.com/wwylele)|Yes|
+|[3909](https://github.com/citra-emu/citra/pull/3909)|[d269bea](https://github.com/citra-emu/citra/pull/3909/files/)|sink_details: Tidy-up device listing code|[MerryMage](https://github.com/MerryMage)|Yes|
+|[3907](https://github.com/citra-emu/citra/pull/3907)|[60c3ec2](https://github.com/citra-emu/citra/pull/3907/files/)|citra_qt: enable per-monitor DPI scaling|[BynariStar](https://github.com/BynariStar)|Yes|
+|[3881](https://github.com/citra-emu/citra/pull/3881)|[318b074](https://github.com/citra-emu/citra/pull/3881/files/)|Use open source Shared Font if no dumped file is available|[B3n30](https://github.com/B3n30)|Yes|
+|[3850](https://github.com/citra-emu/citra/pull/3850)|[05334e6](https://github.com/citra-emu/citra/pull/3850/files/)|applets/swkbd: Software Keyboard Implementation|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[3831](https://github.com/citra-emu/citra/pull/3831)|[6eb7ee9](https://github.com/citra-emu/citra/pull/3831/files/)|citra_qt: Add a volume slider|[FearlessTobi](https://github.com/FearlessTobi)|Yes|
+|[3706](https://github.com/citra-emu/citra/pull/3706)|[3a41f3a](https://github.com/citra-emu/citra/pull/3706/files/)|Use Travis CI to build MinGW packages|[liushuyu](https://github.com/liushuyu)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra
