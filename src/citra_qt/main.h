@@ -170,6 +170,9 @@ private slots:
     void HideFullscreen();
     void ToggleWindowMode();
     void OnCreateGraphicsSurfaceViewer();
+    void OnRecordMovie();
+    void OnPlayMovie();
+    void OnStopRecordingPlayback();
     void OnCoreError(Core::System::ResultStatus, std::string);
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
@@ -179,6 +182,8 @@ private slots:
     void OnLanguageChanged(const QString& locale);
 
 private:
+    bool ValidateMovie(const QString& path, u64 program_id = 0);
+    Q_INVOKABLE void OnMoviePlaybackCompleted();
     void UpdateStatusBar();
     void LoadTranslation();
     void SetupUIStrings();
@@ -208,6 +213,10 @@ private:
     QString game_title;
     // The path to the game currently running
     QString game_path;
+
+    // Movie
+    bool movie_record_on_start = false;
+    QString movie_record_path;
 
     // Debugger panes
     ProfilerWidget* profilerWidget;
