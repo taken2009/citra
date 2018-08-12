@@ -74,6 +74,7 @@ const std::array<UISettings::Shortcut, 19> Config::default_hotkeys{
      {"Toggle Screen Layout", "Main Window", {"F10", Qt::WindowShortcut}},
      {"Toggle Speed Limit", "Main Window", {"Ctrl+Z", Qt::ApplicationShortcut}},
      {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}}}};
+     {"Show Toolbar", "Main Window", {"Ctrl+G", Qt::WindowShortcut}}}};
 
 void Config::ReadValues() {
     qt_config->beginGroup("Controls");
@@ -365,6 +366,7 @@ void Config::ReadValues() {
     UISettings::values.first_start = ReadSetting("firstStart", true).toBool();
     UISettings::values.callout_flags = ReadSetting("calloutFlags", 0).toUInt();
     UISettings::values.show_console = ReadSetting("showConsole", false).toBool();
+    UISettings::values.Show_Toolbar = ReadSetting("showToolbar", true).toBool();
 
     qt_config->beginGroup("Multiplayer");
     UISettings::values.nickname = ReadSetting("nickname", "").toString();
@@ -605,6 +607,7 @@ void Config::SaveValues() {
     WriteSetting("firstStart", UISettings::values.first_start, true);
     WriteSetting("calloutFlags", UISettings::values.callout_flags, 0);
     WriteSetting("showConsole", UISettings::values.show_console, false);
+    WriteSetting("showToolbar", UISettings::values.Show_Toolbar,true);
 
     qt_config->beginGroup("Multiplayer");
     WriteSetting("nickname", UISettings::values.nickname, "");
