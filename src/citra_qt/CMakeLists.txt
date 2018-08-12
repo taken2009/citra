@@ -142,6 +142,7 @@ set(UIS
 file(GLOB COMPAT_LIST
      ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
      ${CMAKE_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
+file(GLOB_RECURSE TOOLBAR_ICONS ${CMAKE_SOURCE_DIR}/dist/toolbar_icons/*)
 file(GLOB_RECURSE ICONS ${CMAKE_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${CMAKE_SOURCE_DIR}/dist/qt_themes/*)
 
@@ -193,16 +194,19 @@ target_sources(citra-qt
 if (APPLE)
     set(MACOSX_ICON "../../dist/citra.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    target_sources(citra-qt PRIVATE ${MACOSX_ICON})
+    target_sources(citra-qt PRIVATE ${MACOSX_ICON} ${TOOLBAR_ICONS})
     set_target_properties(citra-qt PROPERTIES MACOSX_BUNDLE TRUE)
     set_target_properties(citra-qt PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 elseif(WIN32)
     # compile as a win32 gui application instead of a console application
     target_link_libraries(citra-qt PRIVATE Qt5::WinMain)
+    target_sources(citra-qt PRIVATE ${TOOLBAR_ICONS})
     if(MSVC)
         set_target_properties(citra-qt PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
+        target_sources(citra-qt PRIVATE ${TOOLBAR_ICONS})
     elseif(MINGW)
         set_target_properties(citra-qt PROPERTIES LINK_FLAGS_RELEASE "-mwindows")
+        target_sources(citra-qt PRIVATE ${TOOLBAR_ICONS})
     endif()
 endif()
 
