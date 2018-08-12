@@ -361,6 +361,7 @@ void Config::ReadValues() {
     UISettings::values.first_start = ReadSetting("firstStart", true).toBool();
     UISettings::values.callout_flags = ReadSetting("calloutFlags", 0).toUInt();
     UISettings::values.show_console = ReadSetting("showConsole", false).toBool();
+    UISettings::values.Show_Toolbar = ReadSetting("showToolbar", true).toBool();
 
     qt_config->beginGroup("Multiplayer");
     UISettings::values.nickname = ReadSetting("nickname", "").toString();
@@ -564,6 +565,7 @@ void Config::SaveValues() {
     WriteSetting("firstStart", UISettings::values.first_start, true);
     WriteSetting("calloutFlags", UISettings::values.callout_flags, 0);
     WriteSetting("showConsole", UISettings::values.show_console, false);
+    WriteSetting("showToolbar", UISettings::values.Show_Toolbar,true);
 
     qt_config->beginGroup("Multiplayer");
     WriteSetting("nickname", UISettings::values.nickname, "");
