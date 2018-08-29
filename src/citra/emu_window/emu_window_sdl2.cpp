@@ -17,6 +17,7 @@
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
+#include "input_common/sdl/sdl.h"
 #include "network/network.h"
 
 void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
@@ -86,10 +87,12 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     SDL_SetMainReady();
 
     // Initialize the window
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK) < 0) {
         LOG_CRITICAL(Frontend, "Failed to initialize SDL2! Exiting...");
         exit(1);
     }
+
+    InputCommon::SDL::InitSDLJoysticks();
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -142,6 +145,7 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
 }
 
 EmuWindow_SDL2::~EmuWindow_SDL2() {
+    InputCommon::SDL::CloseSDLJoysticks();
     SDL_GL_DeleteContext(gl_context);
     SDL_Quit();
 
@@ -187,6 +191,8 @@ void EmuWindow_SDL2::PollEvents() {
         case SDL_QUIT:
             is_open = false;
             break;
+        default:
+            InputCommon::SDL::HandleGameControllerEvent(event);
         }
     }
 }
