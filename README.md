@@ -1,3 +1,26 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: 05118a23267018d76aafae8719ffc28338009b28
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[6](https://github.com/citra-emu/citra-canary/pull/6)|[a53a8d3](https://github.com/citra-emu/citra-canary/pull/6/files/)|Canary Base (MinGW Test)|[liushuyu](https://github.com/liushuyu)|Yes|
+|[4141](https://github.com/citra-emu/citra/pull/4141)|[a85f877](https://github.com/citra-emu/citra/pull/4141/files/)|Joystick hotplug support|[B3n30](https://github.com/B3n30)|Yes|
+|[4140](https://github.com/citra-emu/citra/pull/4140)|[486e9f6](https://github.com/citra-emu/citra/pull/4140/files/)|citra_qt/configuration: misc input tab improvements|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[4138](https://github.com/citra-emu/citra/pull/4138)|[c6a16c1](https://github.com/citra-emu/citra/pull/4138/files/)|web_service: Unify links for web service endpoints|[FearlessTobi](https://github.com/FearlessTobi)|Yes|
+|[4089](https://github.com/citra-emu/citra/pull/4089)|[80bdc4a](https://github.com/citra-emu/citra/pull/4089/files/)|[NOT FOR MERGE YET] Ignore format reinterpretation hack|[jroweboy](https://github.com/jroweboy)|Yes|
+|[4086](https://github.com/citra-emu/citra/pull/4086)|[1817e30](https://github.com/citra-emu/citra/pull/4086/files/)|externals: Update dynarmic|[MerryMage](https://github.com/MerryMage)|Yes|
+|[4069](https://github.com/citra-emu/citra/pull/4069)|[aa98e55](https://github.com/citra-emu/citra/pull/4069/files/)|Service::SM: Wait till client is registered|[B3n30](https://github.com/B3n30)|Yes|
+|[4005](https://github.com/citra-emu/citra/pull/4005)|[8783c99](https://github.com/citra-emu/citra/pull/4005/files/)|service/cecd: Stub some functions|[NarcolepticK](https://github.com/NarcolepticK)|Yes|
+|[3786](https://github.com/citra-emu/citra/pull/3786)|[4e9b380](https://github.com/citra-emu/citra/pull/3786/files/)|citra-qt: Make hotkeys configurable via the GUI.|[adityaruplaha](https://github.com/adityaruplaha)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra
