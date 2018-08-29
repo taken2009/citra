@@ -15,14 +15,22 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, const HotkeyRegistry& registry
     this->setConfiguration();
     connect(ui->generalTab, &ConfigureGeneral::languageChanged, this,
             &ConfigureDialog::onLanguageChanged);
+    connect(ui->inputTab, &ConfigureInput::InputKeysChanged, ui->generalTab,
+            &ConfigureGeneral::OnInputKeysChanged);
+    connect(ui->generalTab, &ConfigureGeneral::HotkeysChanged, ui->inputTab,
+            &ConfigureInput::OnHotkeysChanged);
+
+    // Synchronise lists upon initialisation
+    ui->inputTab->EmitInputKeysChanged();
+    ui->generalTab->EmitHotkeysChanged();
 }
 
 ConfigureDialog::~ConfigureDialog() = default;
 
 void ConfigureDialog::setConfiguration() {}
 
-void ConfigureDialog::applyConfiguration() {
-    ui->generalTab->applyConfiguration();
+void ConfigureDialog::applyConfiguration(HotkeyRegistry& registry) {
+    ui->generalTab->applyConfiguration(registry);
     ui->systemTab->applyConfiguration();
     ui->inputTab->applyConfiguration();
     ui->graphicsTab->applyConfiguration();

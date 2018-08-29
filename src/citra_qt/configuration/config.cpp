@@ -3,9 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <unordered_map>
+#include <vector>
+#include <QKeySequence>
 #include <QSettings>
 #include "citra_qt/configuration/config.h"
-#include "citra_qt/ui_settings.h"
 #include "common/file_util.h"
 #include "core/hle/service/service.h"
 #include "input_common/main.h"
@@ -261,20 +262,48 @@ void Config::ReadValues() {
     qt_config->endGroup();
 
     qt_config->beginGroup("Shortcuts");
-    QStringList groups = qt_config->childGroups();
-    for (auto group : groups) {
-        qt_config->beginGroup(group);
+    const std::array<UISettings::Shortcut, 14> default_hotkeys{
+        UISettings::Shortcut("Load File", "Main Window",
+                             UISettings::ContextualShortcut(
+                                 QKeySequence(QKeySequence::Open).toString(), Qt::WindowShortcut)),
+        UISettings::Shortcut("Exit Citra", "Main Window",
+                             UISettings::ContextualShortcut("Ctrl+Q", Qt::WindowShortcut)),
+        UISettings::Shortcut("Continue/Pause Emulation", "Main Window",
+                             UISettings::ContextualShortcut("F4", Qt::WindowShortcut)),
+        UISettings::Shortcut("Stop Emulation", "Main Window",
+                             UISettings::ContextualShortcut("F5", Qt::WindowShortcut)),
+        UISettings::Shortcut("Restart Emulation", "Main Window",
+                             UISettings::ContextualShortcut("F6", Qt::WindowShortcut)),
+        UISettings::Shortcut("Swap Screens", "Main Window",
+                             UISettings::ContextualShortcut("F9", Qt::WindowShortcut)),
+        UISettings::Shortcut("Toggle Screen Layout", "Main Window",
+                             UISettings::ContextualShortcut("F10", Qt::WindowShortcut)),
+        UISettings::Shortcut("Toggle Filter Bar", "Main Window",
+                             UISettings::ContextualShortcut("Ctrl+F", Qt::WindowShortcut)),
+        UISettings::Shortcut("Toggle Status Bar", "Main Window",
+                             UISettings::ContextualShortcut("Ctrl+S", Qt::WindowShortcut)),
+        UISettings::Shortcut(
+            "Fullscreen", "Main Window",
+            UISettings::ContextualShortcut(QKeySequence(QKeySequence::FullScreen).toString(),
+                                           Qt::WindowShortcut)),
+        UISettings::Shortcut("Exit Fullscreen", "Main Window",
+                             UISettings::ContextualShortcut("Escape", Qt::WindowShortcut)),
+        UISettings::Shortcut("Toggle Speed Limit", "Main Window",
+                             UISettings::ContextualShortcut("Ctrl+Z", Qt::ApplicationShortcut)),
+        UISettings::Shortcut("Increase Speed Limit", "Main Window",
+                             UISettings::ContextualShortcut("+", Qt::ApplicationShortcut)),
+        UISettings::Shortcut("Decrease Speed Limit", "Main Window",
+                             UISettings::ContextualShortcut("-", Qt::ApplicationShortcut))};
 
-        QStringList hotkeys = qt_config->childGroups();
-        for (auto hotkey : hotkeys) {
-            qt_config->beginGroup(hotkey);
-            UISettings::values.shortcuts.emplace_back(UISettings::Shortcut(
-                group + "/" + hotkey,
-                UISettings::ContextualShortcut(ReadSetting("KeySeq").toString(),
-                                               ReadSetting("Context").toInt())));
-            qt_config->endGroup();
-        }
-
+    for (int i = 0; i < default_hotkeys.size(); i++) {
+        qt_config->beginGroup(default_hotkeys[i].group);
+        qt_config->beginGroup(default_hotkeys[i].name);
+        UISettings::values.shortcuts.emplace_back(UISettings::Shortcut(
+            default_hotkeys[i].name, default_hotkeys[i].group,
+            UISettings::ContextualShortcut(
+                qt_config->value("KeySeq", default_hotkeys[i].shortcut.first).toString(),
+                qt_config->value("Context", default_hotkeys[i].shortcut.second).toInt())));
+        qt_config->endGroup();
         qt_config->endGroup();
     }
     qt_config->endGroup();
@@ -474,8 +503,12 @@ void Config::SaveValues() {
 
     qt_config->beginGroup("Shortcuts");
     for (auto shortcut : UISettings::values.shortcuts) {
-        WriteSetting(shortcut.first + "/KeySeq", shortcut.second.first);
-        WriteSetting(shortcut.first + "/Context", shortcut.second.second);
+        qt_config->beginGroup(shortcut.group);
+        qt_config->beginGroup(shortcut.name);
+        WriteSetting("KeySeq", shortcut.shortcut.first);
+        WriteSetting("Context", shortcut.shortcut.second);
+        qt_config->endGroup();
+        qt_config->endGroup();
     }
     qt_config->endGroup();
 
