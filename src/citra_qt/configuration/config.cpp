@@ -265,7 +265,7 @@ void Config::ReadValues() {
     qt_config->endGroup();
 
     qt_config->beginGroup("Shortcuts");
-    const std::array<UISettings::Shortcut, 14> default_hotkeys{
+    const std::array<UISettings::Shortcut, 16> default_hotkeys{
         UISettings::Shortcut("Load File", "Main Window",
                              UISettings::ContextualShortcut(
                                  QKeySequence(QKeySequence::Open).toString(), Qt::WindowShortcut)),
