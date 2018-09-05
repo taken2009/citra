@@ -21,14 +21,20 @@ public:
     ~ConfigureGeneral();
 
     void PopulateHotkeyList(const HotkeyRegistry& registry);
-    void applyConfiguration();
+    void applyConfiguration(HotkeyRegistry& registry);
     void retranslateUi();
+    void EmitHotkeysChanged();
 
-private slots:
-    void onLanguageChanged(int index);
+public slots:
+    void OnInputKeysChanged(QList<QKeySequence> new_key_list);
 
 signals:
     void languageChanged(const QString& locale);
+    void HotkeysChanged(QList<QKeySequence> new_key_list);
+    void InputKeysChanged(QList<QKeySequence> new_key_list);
+
+private slots:
+    void OnLanguageChanged(int index);
 
 private:
     void setConfiguration();
