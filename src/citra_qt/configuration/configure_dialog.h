@@ -20,7 +20,7 @@ public:
     explicit ConfigureDialog(QWidget* parent, const HotkeyRegistry& registry);
     ~ConfigureDialog();
 
-    void applyConfiguration();
+    void applyConfiguration(HotkeyRegistry& registry);
     void UpdateVisibleTabs();
     void PopulateSelectionList();
 

@@ -13,27 +13,36 @@
 ConfigureDialog::ConfigureDialog(QWidget* parent, const HotkeyRegistry& registry)
     : QDialog(parent), ui(new Ui::ConfigureDialog) {
     ui->setupUi(this);
-    ui->generalTab->PopulateHotkeyList(registry);
+    ui->hotkeysTab->Populate(registry);
     this->setConfiguration();
     this->PopulateSelectionList();
     connect(ui->generalTab, &ConfigureGeneral::languageChanged, this,
             &ConfigureDialog::onLanguageChanged);
+
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
-
     adjustSize();
-
     ui->selectorList->setCurrentRow(0);
+
+    connect(ui->inputTab, &ConfigureInput::InputKeysChanged, ui->hotkeysTab,
+            &ConfigureHotkeys::OnInputKeysChanged);
+    connect(ui->hotkeysTab, &ConfigureHotkeys::HotkeysChanged, ui->inputTab,
+            &ConfigureInput::OnHotkeysChanged);
+
+    // Synchronise lists upon initialisation
+    ui->inputTab->EmitInputKeysChanged();
+    ui->hotkeysTab->EmitHotkeysChanged();
 }
 
 ConfigureDialog::~ConfigureDialog() = default;
 
 void ConfigureDialog::setConfiguration() {}
 
-void ConfigureDialog::applyConfiguration() {
+void ConfigureDialog::applyConfiguration(HotkeyRegistry& registry) {
     ui->generalTab->applyConfiguration();
     ui->systemTab->applyConfiguration();
     ui->inputTab->applyConfiguration();
+    ui->hotkeysTab->applyConfiguration(registry);
     ui->graphicsTab->applyConfiguration();
     ui->audioTab->applyConfiguration();
     ui->cameraTab->applyConfiguration();
@@ -49,7 +58,7 @@ void ConfigureDialog::PopulateSelectionList() {
         {{tr("General"), {tr("General"), tr("Web"), tr("Debug")}},
          {tr("System"), {tr("System"), tr("Audio"), tr("Camera")}},
          {tr("Graphics"), {tr("Graphics")}},
-         {tr("Controls"), {tr("Input")}}}};
+         {tr("Controls"), {tr("Input"), tr("Hotkeys")}}}};
 
     for (const auto& entry : items) {
         auto* item = new QListWidgetItem(entry.first);
@@ -65,6 +74,7 @@ void ConfigureDialog::onLanguageChanged(const QString& locale) {
     ui->generalTab->retranslateUi();
     ui->systemTab->retranslateUi();
     ui->inputTab->retranslateUi();
+    ui->hotkeysTab->retranslateUi();
     ui->graphicsTab->retranslateUi();
     ui->audioTab->retranslateUi();
     ui->cameraTab->retranslateUi();
@@ -77,11 +87,15 @@ void ConfigureDialog::UpdateVisibleTabs() {
     if (items.isEmpty())
         return;
 
-    const QHash<QString, QWidget*> widgets = {
-        {tr("General"), ui->generalTab}, {tr("System"), ui->systemTab},
-        {tr("Input"), ui->inputTab},     {tr("Graphics"), ui->graphicsTab},
-        {tr("Audio"), ui->audioTab},     {tr("Camera"), ui->cameraTab},
-        {tr("Debug"), ui->debugTab},     {tr("Web"), ui->webTab}};
+    const QHash<QString, QWidget*> widgets = {{tr("General"), ui->generalTab},
+                                              {tr("System"), ui->systemTab},
+                                              {tr("Input"), ui->inputTab},
+                                              {tr("Hotkeys"), ui->hotkeysTab},
+                                              {tr("Graphics"), ui->graphicsTab},
+                                              {tr("Audio"), ui->audioTab},
+                                              {tr("Camera"), ui->cameraTab},
+                                              {tr("Debug"), ui->debugTab},
+                                              {tr("Web"), ui->webTab}};
 
     ui->tabWidget->clear();
 

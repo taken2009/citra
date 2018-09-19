@@ -29,7 +29,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     // retranslating when passing back.
     connect(ui->language_combobox,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-            &ConfigureGeneral::onLanguageChanged);
+            &ConfigureGeneral::OnLanguageChanged);
 
     for (auto theme : UISettings::themes) {
         ui->theme_combobox->addItem(theme.first, theme.second);
@@ -56,10 +56,6 @@ void ConfigureGeneral::setConfiguration() {
         ui->language_combobox->findData(UISettings::values.language));
 }
 
-void ConfigureGeneral::PopulateHotkeyList(const HotkeyRegistry& registry) {
-    ui->hotkeysDialog->Populate(registry);
-}
-
 void ConfigureGeneral::applyConfiguration() {
     UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
     UISettings::values.theme =
@@ -71,7 +67,7 @@ void ConfigureGeneral::applyConfiguration() {
     Settings::values.region_value = ui->region_combobox->currentIndex() - 1;
 }
 
-void ConfigureGeneral::onLanguageChanged(int index) {
+void ConfigureGeneral::OnLanguageChanged(int index) {
     if (index == -1)
         return;
 
@@ -80,5 +76,4 @@ void ConfigureGeneral::onLanguageChanged(int index) {
 
 void ConfigureGeneral::retranslateUi() {
     ui->retranslateUi(this);
-    ui->hotkeysDialog->retranslateUi();
 }

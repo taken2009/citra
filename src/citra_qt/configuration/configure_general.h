@@ -20,15 +20,14 @@ public:
     explicit ConfigureGeneral(QWidget* parent = nullptr);
     ~ConfigureGeneral();
 
-    void PopulateHotkeyList(const HotkeyRegistry& registry);
     void applyConfiguration();
     void retranslateUi();
 
-private slots:
-    void onLanguageChanged(int index);
-
 signals:
     void languageChanged(const QString& locale);
+
+private slots:
+    void OnLanguageChanged(int index);
 
 private:
     void setConfiguration();
