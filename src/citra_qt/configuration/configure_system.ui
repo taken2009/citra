@@ -290,6 +290,29 @@
       </widget>
      </item>
      <item>
+      <widget class="QGroupBox" name="group_play_coins">
+       <property name="title">
+        <string>Play Coins</string>
+       </property>
+       <layout class="QHBoxLayout" name="horiziontalLayout_playcoins">
+        <item>
+         <widget class="QLabel" name="label_play_coins">
+          <property name="text">
+           <string>Play Coins:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBox_play_coins">
+          <property name="maximum">
+           <number>300</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="label_disable_info">
        <property name="text">
         <string>System settings are available only when game is not running.</string>
