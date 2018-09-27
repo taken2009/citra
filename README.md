@@ -1,3 +1,29 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: 7c97e8df62826517afa3b86e735efcc6294d015f
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[6](https://github.com/citra-emu/citra-canary/pull/6)|[a53a8d3](https://github.com/citra-emu/citra-canary/pull/6/files/)|Canary Base (MinGW Test)|[liushuyu](https://github.com/liushuyu)|Yes|
+|[4270](https://github.com/citra-emu/citra/pull/4270)|[3970d86](https://github.com/citra-emu/citra/pull/4270/files/)|Threaded CPU vertex shader processing|[jroweboy](https://github.com/jroweboy)|Yes|
+|[4257](https://github.com/citra-emu/citra/pull/4257)|[3f4a7f8](https://github.com/citra-emu/citra/pull/4257/files/)|Input: Remove global variables from SDL Input|[jroweboy](https://github.com/jroweboy)|Yes|
+|[4253](https://github.com/citra-emu/citra/pull/4253)|[e087cb9](https://github.com/citra-emu/citra/pull/4253/files/)|common/string_util cleanup|[wwylele](https://github.com/wwylele)|Yes|
+|[4244](https://github.com/citra-emu/citra/pull/4244)|[41d53ce](https://github.com/citra-emu/citra/pull/4244/files/)|common/swap: add swap template for enum|[wwylele](https://github.com/wwylele)|Yes|
+|[4232](https://github.com/citra-emu/citra/pull/4232)|[697bc1a](https://github.com/citra-emu/citra/pull/4232/files/)|loader, cfg: choose region based on language if multiple regions available|[wwylele](https://github.com/wwylele)|Yes|
+|[4229](https://github.com/citra-emu/citra/pull/4229)|[b80f496](https://github.com/citra-emu/citra/pull/4229/files/)|citra_qt, core: game list "Open XXX Location" improvements|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[4211](https://github.com/citra-emu/citra/pull/4211)|[f3d5955](https://github.com/citra-emu/citra/pull/4211/files/)|web_service: stop using std::future + callback style async|[wwylele](https://github.com/wwylele)|Yes|
+|[4181](https://github.com/citra-emu/citra/pull/4181)|[9668852](https://github.com/citra-emu/citra/pull/4181/files/)|Add encrypted CIA support|[wwylele](https://github.com/wwylele)|Yes|
+|[4140](https://github.com/citra-emu/citra/pull/4140)|[a3625b5](https://github.com/citra-emu/citra/pull/4140/files/)|citra_qt/configuration: misc input tab improvements|[zhaowenlan1779](https://github.com/zhaowenlan1779)|Yes|
+|[4089](https://github.com/citra-emu/citra/pull/4089)|[80bdc4a](https://github.com/citra-emu/citra/pull/4089/files/)|[NOT FOR MERGE YET] Ignore format reinterpretation hack|[jroweboy](https://github.com/jroweboy)|Yes|
+|[3786](https://github.com/citra-emu/citra/pull/3786)|[1902caf](https://github.com/citra-emu/citra/pull/3786/files/)|citra-qt: Make hotkeys configurable via the GUI.|[adityaruplaha](https://github.com/adityaruplaha)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/blob/master/CONTRIBUTING.md#reporting-issues) FILE!!!**
 
 Citra
