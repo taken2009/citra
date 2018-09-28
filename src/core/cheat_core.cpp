@@ -40,8 +40,8 @@ namespace CheatCore {
 namespace CheatEngine {
     static std::string GetFilePath() {
         const auto program_id =
-            Common::StringFromFormat("%016llX", Kernel::g_current_process->codeset->program_id);
-        return FileUtil::GetUserPath(D_USER_IDX) + "cheats" + DIR_SEP + program_id + ".txt";
+            fmt::format("{:016x}", Kernel::g_current_process->codeset->program_id);
+        return FileUtil::GetUserPath(FileUtil::UserPath::UserDir) + "cheats" + DIR_SEP + program_id +".txt";
     }
     CheatEngine::CheatEngine() {
         const auto file_path = GetFilePath();
