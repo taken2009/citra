@@ -350,9 +350,9 @@ void GMainWindow::InitializeHotkeys() {
     hotkey_registry.RegisterHotkey("Main Window", "Continue/Pause", QKeySequence(Qt::Key_F4));
     hotkey_registry.RegisterHotkey("Main Window", "Restart", QKeySequence(Qt::Key_F5));
     hotkey_registry.RegisterHotkey("Main Window", "Swap Screens", QKeySequence(tr("F9")));
-    hotkey_registry.RegisterHotkey("Main Window", "Show Toolbar", QKeySequence("CTRL+Q"),
+    hotkey_registry.RegisterHotkey("Main Window", "Show Toolbar", QKeySequence("CTRL+Q")),
     hotkey_registry.RegisterHotkey("Main Window", "Toggle Screen Layout", QKeySequence(tr("F10")));
-    hotkey_registry.RegisterHotkey("Main Window", "Toggle Frame Limit", QKeySequence("CTRL+A"),
+    hotkey_registry.RegisterHotkey("Main Window", "Toggle Frame Limit", QKeySequence("CTRL+A")),
     hotkey_registry.RegisterHotkey("Main Window", "Fullscreen", QKeySequence::FullScreen);
     hotkey_registry.RegisterHotkey("Main Window", "Exit Fullscreen", QKeySequence(Qt::Key_Escape),
                                    Qt::ApplicationShortcut);
