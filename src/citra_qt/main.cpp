@@ -355,7 +355,7 @@ void GMainWindow::InitializeHotkeys() {
     hotkey_registry.RegisterHotkey("Main Window", "Start Emulation");
     hotkey_registry.RegisterHotkey("Main Window", "Continue/Pause", QKeySequence(Qt::Key_F4));
     hotkey_registry.RegisterHotkey("Main Window", "Restart", QKeySequence(Qt::Key_F5));
-    hotkey_registry.RegisterHotkey("Main Window", "Show Toolbar", QKeySequence(("CTRL+G")));
+    hotkey_registry.RegisterHotkey("Main Window", "Show Toolbar", QKeySequence("CTRL+G"));
     hotkey_registry.RegisterHotkey("Main Window", "Swap Screens", QKeySequence(Qt::Key_F9));
     hotkey_registry.RegisterHotkey("Main Window", "Toggle Screen Layout",
                                    QKeySequence(Qt::Key_F10));
