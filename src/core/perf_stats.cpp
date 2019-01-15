@@ -81,7 +81,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
         return;
     }
 
-    if (!Settings::values.use_frame_limit) {
+    if (!Settings::values.use_frame_limit || Settings::values.frame_limit == 0) {
         return;
     }
 

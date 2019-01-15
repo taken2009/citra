@@ -54,7 +54,7 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> Config:
 // QKeySequnce(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
-const std::array<UISettings::Shortcut, 20> Config::default_hotkeys{
+const std::array<UISettings::Shortcut, 21> Config::default_hotkeys{
     {{"Advance Frame", "Main Window", {"\\", Qt::ApplicationShortcut}},
      {"Capture Screenshot", "Main Window", {"Ctrl+P", Qt::ApplicationShortcut}},
      {"Continue/Pause Emulation", "Main Window", {"F4", Qt::WindowShortcut}},
@@ -74,6 +74,7 @@ const std::array<UISettings::Shortcut, 20> Config::default_hotkeys{
      {"Toggle Screen Layout", "Main Window", {"F10", Qt::WindowShortcut}},
      {"Toggle Speed Limit", "Main Window", {"Ctrl+Z", Qt::ApplicationShortcut}},
      {"Show Toolbar", "Main Window", {"Ctrl+G", Qt::WindowShortcut}},
+     {"Toggle Frame Limit", "Main Window", {"Ctrl+B", Qt::WindowShortcut}},
      {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}}}};
 
 void Config::ReadValues() {
@@ -168,6 +169,8 @@ void Config::ReadValues() {
     Settings::values.frame_limit = ReadSetting("frame_limit", 100).toInt();
     Settings::values.FMV_hack = ReadSetting("FMV_hack", false).toBool();
     Settings::values.AddTicks = ReadSetting("AddTicks", 16000).toInt();
+    Settings::values.frame_option =
+        static_cast<Settings::FrameOption>(ReadSetting("frame_option").toInt());
 
     Settings::values.bg_red = ReadSetting("bg_red", 0.0).toFloat();
     Settings::values.bg_green = ReadSetting("bg_green", 0.0).toFloat();
@@ -455,6 +458,7 @@ void Config::SaveValues() {
     WriteSetting("frame_limit", Settings::values.frame_limit, 100);
     WriteSetting("FMV_hack", Settings::values.FMV_hack);
     WriteSetting("AddTicks", Settings::values.AddTicks);
+    WriteSetting("frame_option", static_cast<int>(Settings::values.frame_option));
 
     // Cast to double because Qt's written float values are not human-readable
     WriteSetting("bg_red", (double)Settings::values.bg_red, 0.0);
