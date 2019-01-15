@@ -75,6 +75,7 @@ const std::array<UISettings::Shortcut, 19> Config::default_hotkeys{
      {"Toggle Speed Limit", "Main Window", {"Ctrl+Z", Qt::ApplicationShortcut}},
      {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}}}};
      {"Show Toolbar", "Main Window", {"Ctrl+G", Qt::WindowShortcut}}}};
+     {"Toggle Frame Limit", "Main Window", {"Ctrl+B", Qt::WindowShortcut}},
 
 void Config::ReadValues() {
     qt_config->beginGroup("Controls");
@@ -168,6 +169,8 @@ void Config::ReadValues() {
     Settings::values.frame_limit = ReadSetting("frame_limit", 100).toInt();
     Settings::values.FMV_hack = ReadSetting("FMV_hack", false).toBool();
     Settings::values.AddTicks = ReadSetting("AddTicks", 16000).toInt();
+    Settings::values.frame_option =
+        static_cast<Settings::FrameOption>(ReadSetting("frame_option").toInt());
 
     Settings::values.bg_red = ReadSetting("bg_red", 0.0).toFloat();
     Settings::values.bg_green = ReadSetting("bg_green", 0.0).toFloat();
@@ -455,6 +458,7 @@ void Config::SaveValues() {
     WriteSetting("frame_limit", Settings::values.frame_limit, 100);
     WriteSetting("FMV_hack", Settings::values.FMV_hack);
     WriteSetting("AddTicks", Settings::values.AddTicks);
+    WriteSetting("frame_option", static_cast<int>(Settings::values.frame_option));
 
     // Cast to double because Qt's written float values are not human-readable
     WriteSetting("bg_red", (double)Settings::values.bg_red, 0.0);
