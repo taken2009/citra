@@ -100,6 +100,7 @@ private:
     void SetDefaultUIGeometry();
     void SyncMenuUISettings();
     void RestoreUIState();
+    void FramelimitUISettings();
 
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
@@ -196,6 +197,8 @@ private slots:
     void OnOpenUpdater();
     void OnLanguageChanged(const QString& locale);
     void Onshowtoolbar();
+    void Changeframelimit();
+    void ToggleFramelimit();
 
 private:
     bool ValidateMovie(const QString& path, u64 program_id = 0);
