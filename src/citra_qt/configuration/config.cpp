@@ -54,7 +54,7 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> Config:
 // QKeySequnce(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
-const std::array<UISettings::Shortcut, 19> Config::default_hotkeys{
+const std::array<UISettings::Shortcut, 21> Config::default_hotkeys{
     {{"Advance Frame", "Main Window", {"\\", Qt::ApplicationShortcut}},
      {"Capture Screenshot", "Main Window", {"Ctrl+P", Qt::ApplicationShortcut}},
      {"Continue/Pause Emulation", "Main Window", {"F4", Qt::WindowShortcut}},
@@ -73,9 +73,9 @@ const std::array<UISettings::Shortcut, 19> Config::default_hotkeys{
      {"Toggle Frame Advancing", "Main Window", {"Ctrl+A", Qt::ApplicationShortcut}},
      {"Toggle Screen Layout", "Main Window", {"F10", Qt::WindowShortcut}},
      {"Toggle Speed Limit", "Main Window", {"Ctrl+Z", Qt::ApplicationShortcut}},
-     {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}}}};
-     {"Show Toolbar", "Main Window", {"Ctrl+G", Qt::WindowShortcut}}}};
-     {"Toggle Frame Limit", "Main Window", {"Ctrl+B", Qt::WindowShortcut}},
+     {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}},
+     {"Show Toolbar", "Main Window", {"Ctrl+G", Qt::WindowShortcut}},
+     {"Toggle Frame Limit", "Main Window", {"Ctrl+B", Qt::WindowShortcut}}}};
 
 void Config::ReadValues() {
     qt_config->beginGroup("Controls");
