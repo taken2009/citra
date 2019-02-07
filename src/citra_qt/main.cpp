@@ -375,11 +375,6 @@ void GMainWindow::InitializeHotkeys() {
     ui.action_Show_Status_Bar->setShortcutContext(
         hotkey_registry.GetShortcutContext("Main Window", "Toggle Status Bar"));
 
-    ui.action_Show_Toolbar->setShortcut(
-        hotkey_registry.GetKeySequence("Main Window", "Show Toolbar"));
-    ui.action_Show_Toolbar->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Show Toolbar"));
-
     connect(hotkey_registry.GetHotkey("Main Window", "Load File", this), &QShortcut::activated,
             this, &GMainWindow::OnMenuLoadFile);
 
