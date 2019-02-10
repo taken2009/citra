@@ -54,7 +54,7 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> Config:
 // QKeySequnce(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
-const std::array<UISettings::Shortcut, 19> Config::default_hotkeys{
+const std::array<UISettings::Shortcut, 20> Config::default_hotkeys{
     {{"Advance Frame", "Main Window", {"\\", Qt::ApplicationShortcut}},
      {"Capture Screenshot", "Main Window", {"Ctrl+P", Qt::ApplicationShortcut}},
      {"Continue/Pause Emulation", "Main Window", {"F4", Qt::WindowShortcut}},
@@ -73,6 +73,7 @@ const std::array<UISettings::Shortcut, 19> Config::default_hotkeys{
      {"Toggle Frame Advancing", "Main Window", {"Ctrl+A", Qt::ApplicationShortcut}},
      {"Toggle Screen Layout", "Main Window", {"F10", Qt::WindowShortcut}},
      {"Toggle Speed Limit", "Main Window", {"Ctrl+Z", Qt::ApplicationShortcut}},
+     {"Show Toolbar", "Main Window", {"Ctrl+G", Qt::WindowShortcut}},
      {"Toggle Status Bar", "Main Window", {"Ctrl+S", Qt::WindowShortcut}}}};
 
 void Config::ReadValues() {
@@ -379,6 +380,7 @@ void Config::ReadValues() {
     UISettings::values.first_start = ReadSetting("firstStart", true).toBool();
     UISettings::values.callout_flags = ReadSetting("calloutFlags", 0).toUInt();
     UISettings::values.show_console = ReadSetting("showConsole", false).toBool();
+    UISettings::values.Show_Toolbar = ReadSetting("showToolbar", true).toBool();
 
     qt_config->beginGroup("Multiplayer");
     UISettings::values.nickname = ReadSetting("nickname", "").toString();
@@ -629,6 +631,7 @@ void Config::SaveValues() {
     WriteSetting("firstStart", UISettings::values.first_start, true);
     WriteSetting("calloutFlags", UISettings::values.callout_flags, 0);
     WriteSetting("showConsole", UISettings::values.show_console, false);
+    WriteSetting("showToolbar", UISettings::values.Show_Toolbar,true);
 
     qt_config->beginGroup("Multiplayer");
     WriteSetting("nickname", UISettings::values.nickname, "");
