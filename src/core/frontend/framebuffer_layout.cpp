@@ -106,16 +106,16 @@ FramebufferLayout LargeFrameLayout(u32 width, u32 height, bool swapped) {
     float window_aspect_ratio = static_cast<float>(height) / width;
     float emulation_aspect_ratio =
         swapped ? Core::kScreenBottomHeight * 4 /
-                      (Core::kScreenBottomWidth * 4.0f + Core::kScreenTopWidth)
+                      (Core::kScreenBottomWidth * 6.0f + Core::kScreenTopWidth * 0.61f)
                 : Core::kScreenTopHeight * 4 /
-                      (Core::kScreenTopWidth * 4.0f + Core::kScreenBottomWidth);
+                      (Core::kScreenTopWidth * 5.5f + Core::kScreenBottomWidth * 0.33f);
     float large_screen_aspect_ratio = swapped ? BOT_SCREEN_ASPECT_RATIO : TOP_SCREEN_ASPECT_RATIO;
     float small_screen_aspect_ratio = swapped ? TOP_SCREEN_ASPECT_RATIO : BOT_SCREEN_ASPECT_RATIO;
 
     Common::Rectangle<u32> screen_window_area{0, 0, width, height};
     Common::Rectangle<u32> total_rect = maxRectangle(screen_window_area, emulation_aspect_ratio);
     Common::Rectangle<u32> large_screen = maxRectangle(total_rect, large_screen_aspect_ratio);
-    Common::Rectangle<u32> fourth_size_rect = total_rect.Scale(.25f);
+    Common::Rectangle<u32> fourth_size_rect = total_rect.Scale(.55f);
     Common::Rectangle<u32> small_screen = maxRectangle(fourth_size_rect, small_screen_aspect_ratio);
 
     if (window_aspect_ratio < emulation_aspect_ratio) {
